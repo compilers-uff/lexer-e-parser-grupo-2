@@ -143,11 +143,37 @@ action code {:
  * in actions ( {: ... :} ).
  */
 terminal NEWLINE;
-terminal String PLUS; 
-terminal Integer NUMBER; 
 /* Returned by the lexer for erroneous tokens.  Since it does not appear in
  * the grammar, it indicates a syntax error. */
 terminal UNRECOGNIZED;   
+
+/* Literals. */
+terminal Integer NUMBER; 
+
+/* Operators. */
+terminal String PLUS; 
+terminal String MINUS;
+terminal String TIMES;
+terminal String INTEGER_DIVISION;
+terminal String MOD;
+terminal String LESS_THAN;
+terminal String GREATER_THAN;
+terminal String LESS_OR_EQUAL_THAN;
+terminal String GREATER_OR_EQUAL_THAN;
+terminal String EQUALS;
+terminal String NOT_EQUALS;
+terminal String ASSIGN;
+terminal String LEFT_PARENTHESIS;
+terminal String RIGHT_PARENTHESIS;
+terminal String LEFT_BRACKET;
+terminal String RIGHT_BRACKET;
+terminal String COMMA;
+terminal String COLON;
+terminal String DOT;
+terminal String RIGHT_ARROW;
+
+/* Identifiers. */
+terminal String IDENTIFIER;
 
 /* Nonterminal symbols (defined in production rules below).
  * As for terminal symbols, 

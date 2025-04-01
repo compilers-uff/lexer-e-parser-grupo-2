@@ -57,6 +57,8 @@ LineBreak  = \r|\n|\r\n
 
 IntegerLiteral = 0 | [1-9][0-9]*
 
+Identifier = [a-zA-Z_][a-zA-Z_0-9]*
+
 %%
 
 
@@ -70,7 +72,32 @@ IntegerLiteral = 0 | [1-9][0-9]*
                                                  Integer.parseInt(yytext())); }
 
   /* Operators. */
+  /* The following is a space-separated list of symbols that correspond to distinct ChocoPy tokens: 
+   + - * // % < > <= >= == != = ( ) [ ] , : . -> */
+
   "+"                         { return symbol(ChocoPyTokens.PLUS, yytext()); }
+  "-"                         { return symbol(ChocoPyTokens.MINUS, yytext()); }
+  "*"                         { return symbol(ChocoPyTokens.TIMES, yytext()); }
+  "//"                        { return symbol(ChocoPyTokens.INTEGER_DIVISION, yytext()); }
+  "%"                         { return symbol(ChocoPyTokens.MOD, yytext()); }
+  "<"                         { return symbol(ChocoPyTokens.LESS_THAN, yytext()); }
+  ">"                         { return symbol(ChocoPyTokens.GREATER_THAN, yytext()); }
+  "<="                        { return symbol(ChocoPyTokens.LESS_OR_EQUAL_THAN, yytext()); }
+  ">="                        { return symbol(ChocoPyTokens.GREATER_OR_EQUAL_THAN, yytext()); }
+  "=="                        { return symbol(ChocoPyTokens.EQUALS, yytext()); }
+  "!="                        { return symbol(ChocoPyTokens.NOT_EQUALS, yytext()); }
+  "="                         { return symbol(ChocoPyTokens.ASSIGN, yytext()); }
+  "("                         { return symbol(ChocoPyTokens.LEFT_PARENTHESIS, yytext()); }
+  ")"                         { return symbol(ChocoPyTokens.RIGHT_PARENTHESIS, yytext()); }
+  "["                         { return symbol(ChocoPyTokens.LEFT_BRACKET, yytext()); }
+  "]"                         { return symbol(ChocoPyTokens.RIGHT_BRACKET, yytext()); }
+  ","                         { return symbol(ChocoPyTokens.COMMA, yytext()); }
+  ":"                         { return symbol(ChocoPyTokens.COLON, yytext()); }
+  "."                         { return symbol(ChocoPyTokens.DOT, yytext()); }
+  "->"                        { return symbol(ChocoPyTokens.RIGHT_ARROW, yytext()); }
+
+  /* Identifiers. */
+ {Identifier}                 { return symbol(ChocoPyTokens.IDENTIFIER, yytext()); }
 
   /* Whitespace. */
   {WhiteSpace}                { /* ignore */ }
