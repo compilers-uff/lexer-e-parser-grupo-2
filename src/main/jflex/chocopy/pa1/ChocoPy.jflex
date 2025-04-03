@@ -57,6 +57,7 @@ LineBreak  = \r|\n|\r\n
 
 IntegerLiteral = 0 | [1-9][0-9]*
 
+IdStringLiteral = \"[a-zA-Z_][\w]*\"
 Identifier = [a-zA-Z_][a-zA-Z_0-9]*
 
 %%
