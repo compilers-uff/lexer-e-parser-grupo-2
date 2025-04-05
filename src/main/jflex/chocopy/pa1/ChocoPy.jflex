@@ -57,10 +57,29 @@ LineBreak  = \r|\n|\r\n
 
 IntegerLiteral = 0 | [1-9][0-9]*
 
+IdStringLiteral = \"[a-zA-Z_][\w]*\"
+
+/* Macro to \", \\, \n and \r, respectively. All the escaped characters of chocopy defined with hexadecimal */
+ScapedChars = \\\"|\\\\|\\n|\\r
+
+/* 
+    This Macro defines a subset of ASCII from code 32 to code 127, without double quote and backslash.
+    The definition include space, ! and the ranges: 
+        # to [
+        ] to DEL, 
+    ignoring the double quote and backslash.
+ */
+ASCIIWithoutScapeReserved = [ !#-\[\]-\x7f]
+
+StringLiteral = \"({ASCIIWithoutScapeReserved}|{ScapedChars})*\" 
+
 Identifier = [a-zA-Z_][a-zA-Z_0-9]*
 
 %%
 
+{IdStringLiteral}           {  return symbol(ChocoPyTokens.IDSTRING, yytext()); }
+
+{StringLiteral}           {  return symbol(ChocoPyTokens.STRING, yytext()); }
 
 <YYINITIAL> {
 

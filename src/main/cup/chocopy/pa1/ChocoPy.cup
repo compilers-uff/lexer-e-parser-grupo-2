@@ -187,6 +187,8 @@ terminal String YIELD;
 
 /* Literals. */
 terminal Integer NUMBER; 
+terminal String IDSTRING;
+terminal String STRING;
 
 /* Operators. */
 terminal String PLUS; 
