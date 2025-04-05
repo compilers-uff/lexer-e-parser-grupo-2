@@ -60,10 +60,16 @@ IntegerLiteral = 0 | [1-9][0-9]*
 IdStringLiteral = \"[a-zA-Z_][\w]*\"
 
 /* Macro to \", \\, \n and \r, respectively. All the escaped characters of chocopy defined with hexadecimal */
-ScapedChars = \x5c\x22|\x5c\x5c|\x5cn|\x5cr
+ScapedChars = \\\"|\\\\|\\n|\\r
 
-/* This Macro defines a subset of ASCII from code 32 to code 127, without double quote and backslash */
-ASCIIWithoutScapeReserved = [\x20-\x21\x23-\x5b\x5d-\x7f]
+/* 
+    This Macro defines a subset of ASCII from code 32 to code 127, without double quote and backslash.
+    The definition include space, ! and the ranges: 
+        # to [
+        ] to DEL, 
+    ignoring the double quote and backslash.
+ */
+ASCIIWithoutScapeReserved = [ !#-\[\]-\x7f]
 
 StringLiteral = \"({ASCIIWithoutScapeReserved}|{ScapedChars})*\" 
 
