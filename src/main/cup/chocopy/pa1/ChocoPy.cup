@@ -143,10 +143,12 @@ action code {:
  * in actions ( {: ... :} ).
  */
 terminal NEWLINE;
+
+/* Errors */
 /* Returned by the lexer for erroneous tokens.  Since it does not appear in
  * the grammar, it indicates a syntax error. */
 terminal UNRECOGNIZED;   
-
+terminal INTEGER_OVERFLOW_LEXICAL_ERROR;
 
 /* Keywords. */
 terminal String FALSE; 
@@ -186,7 +188,7 @@ terminal String WITH;
 terminal String YIELD;
 
 /* Literals. */
-terminal Integer NUMBER; 
+terminal Integer INTEGER_LITERAL; 
 terminal String IDSTRING;
 terminal String STRING;
 
@@ -269,7 +271,7 @@ expr_stmt ::= expr:e    {: RESULT = new ExprStmt(exleft, exright, e); :}
             ;
 
 expr ::= binary_expr:e  {: RESULT = e; :}
-       | NUMBER:n       {: RESULT = new IntegerLiteral(nxleft, nxright, n); :}
+       | INTEGER_LITERAL:n       {: RESULT = new IntegerLiteral(nxleft, nxright, n); :}
        ;
 
 
