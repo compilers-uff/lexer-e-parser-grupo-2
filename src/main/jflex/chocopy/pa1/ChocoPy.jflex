@@ -87,8 +87,14 @@ Identifier = [a-zA-Z_][a-zA-Z_0-9]*
   {LineBreak}                 { return symbol(ChocoPyTokens.NEWLINE); }
 
   /* Literals. */
-  {IntegerLiteral}            { return symbol(ChocoPyTokens.NUMBER,
-                                                 Integer.parseInt(yytext())); }
+  {IntegerLiteral} { try {
+    int intNumber = Integer.parseInt(yytext());
+    return symbol(ChocoPyTokens.INTEGER_LITERAL, intNumber);
+  } catch (NumberFormatException e) {
+    return symbol(ChocoPyTokens.INTEGER_OVERFLOW_LEXICAL_ERROR);
+  }  
+  }
+  
   /* Keywords. */
 
   /* The following is a space-separated list of symbols that correspond to distinct ChocoPy tokens: 
