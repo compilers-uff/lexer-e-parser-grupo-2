@@ -91,7 +91,7 @@ Identifier = [a-zA-Z_][a-zA-Z_0-9]*
     int intNumber = Integer.parseInt(yytext());
     return symbol(ChocoPyTokens.INTEGER_LITERAL, intNumber);
   } catch (NumberFormatException e) {
-    return symbol(ChocoPyTokens.INTEGER_OVERFLOW_LEXICAL_ERROR)
+    return symbol(ChocoPyTokens.INTEGER_OVERFLOW_LEXICAL_ERROR);
   }  
   }
   
