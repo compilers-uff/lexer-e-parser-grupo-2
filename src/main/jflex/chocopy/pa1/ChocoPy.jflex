@@ -75,11 +75,22 @@ StringLiteral = \"({ASCIIWithoutScapeReserved}|{ScapedChars})*\"
 
 Identifier = [a-zA-Z_][a-zA-Z_0-9]*
 
+%state COMMENT_HANDLER
+
 %%
 
 {IdStringLiteral}           {  return symbol(ChocoPyTokens.IDSTRING, yytext()); }
 
 {StringLiteral}           {  return symbol(ChocoPyTokens.STRING, yytext()); }
+
+<COMMENT_HANDLER> {
+
+  {LineBreak}           {yybegin(YYINITIAL)}
+  .                     {}
+
+}
+
+
 
 <YYINITIAL> {
 
@@ -156,6 +167,7 @@ try, while, with, yield.*/
   ":"                         { return symbol(ChocoPyTokens.COLON, yytext()); }
   "."                         { return symbol(ChocoPyTokens.DOT, yytext()); }
   "->"                        { return symbol(ChocoPyTokens.RIGHT_ARROW, yytext()); }
+  "#"                         { yybegin(COMMENT_HANDLER)}
 
   /* Identifiers. */
  {Identifier}                 { return symbol(ChocoPyTokens.IDENTIFIER, yytext()); }
