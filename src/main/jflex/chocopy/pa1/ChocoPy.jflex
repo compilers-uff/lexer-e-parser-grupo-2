@@ -1,5 +1,6 @@
 package chocopy.pa1;
 import java_cup.runtime.*;
+import java.util.Stack;
 
 %%
 
@@ -48,6 +49,9 @@ import java_cup.runtime.*;
             value);
     }
 
+    Stack<Integer> initial_spaces_by_line = new Stack<>();
+    int space_counter = 0;
+
 %}
 
 /* Macros (regexes used in rules below) */
@@ -57,23 +61,180 @@ LineBreak  = \r|\n|\r\n
 
 IntegerLiteral = 0 | [1-9][0-9]*
 
+IdStringLiteral = \"[a-zA-Z_][\w]*\"
+
+/* Macro to \", \\, \n and \r, respectively. All the escaped characters of chocopy defined with hexadecimal */
+ScapedChars = \\\"|\\\\|\\n|\\r
+
+/* 
+    This Macro defines a subset of ASCII from code 32 to code 127, without double quote and backslash.
+    The definition include space, ! and the ranges: 
+        # to [
+        ] to DEL, 
+    ignoring the double quote and backslash.
+ */
+ASCIIWithoutScapeReserved = [ !#-\[\]-\x7f]
+
+StringLiteral = \"({ASCIIWithoutScapeReserved}|{ScapedChars})*\" 
+
+Identifier = [a-zA-Z_][a-zA-Z_0-9]*
+
+%state COMMENT_HANDLER
+
+%state INDENT_HANDLER
+
+%state DEDENT_HANDLER
+
+
 %%
+
+{IdStringLiteral}           {  return symbol(ChocoPyTokens.IDSTRING, yytext()); }
+
+{StringLiteral}           {  return symbol(ChocoPyTokens.STRING, yytext()); }
+
+<COMMENT_HANDLER> {
+
+  {LineBreak}           { yybegin(YYINITIAL); }
+  .                     {}
+
+}
+
 
 
 <YYINITIAL> {
 
   /* Delimiters. */
-  {LineBreak}                 { return symbol(ChocoPyTokens.NEWLINE); }
+  {LineBreak}                 { yybegin(INDENT_HANDLER);
+                                space_counter = 0;
+                                return symbol(ChocoPyTokens.NEWLINE); }
 
   /* Literals. */
-  {IntegerLiteral}            { return symbol(ChocoPyTokens.NUMBER,
-                                                 Integer.parseInt(yytext())); }
+  {IntegerLiteral} { try {
+    int intNumber = Integer.parseInt(yytext());
+    return symbol(ChocoPyTokens.INTEGER_LITERAL, intNumber);
+  } catch (NumberFormatException e) {
+    return symbol(ChocoPyTokens.INTEGER_OVERFLOW_LEXICAL_ERROR);
+  }  
+  }
+  
+  /* Keywords. */
+
+  /* The following is a space-separated list of symbols that correspond to distinct ChocoPy tokens: 
+False, None, True, and, as, assert, async, await, break, class, continue, def, del, elif, else,
+except, finally, for, from, global, if, import, in, is, lambda, nonlocal, not, or, pass, raise, return,
+try, while, with, yield.*/
+
+  "False"                         { return symbol(ChocoPyTokens.FALSE, yytext()); }
+  "None"                         { return symbol(ChocoPyTokens.NONE, yytext()); }
+  "True"                         { return symbol(ChocoPyTokens.TRUE, yytext()); }
+  "and"                        { return symbol(ChocoPyTokens.AND, yytext()); }
+  "as"                         { return symbol(ChocoPyTokens.AS, yytext()); }
+  "assert"                         { return symbol(ChocoPyTokens.ASSERT, yytext()); }
+  "async"                         { return symbol(ChocoPyTokens.ASYNC, yytext()); }
+  "await"                        { return symbol(ChocoPyTokens.AWAIT, yytext()); }
+  "break"                        { return symbol(ChocoPyTokens.BREAK, yytext()); }
+  "class"                        { return symbol(ChocoPyTokens.CLASS, yytext()); }
+  "continue"                        { return symbol(ChocoPyTokens.CONTINUE, yytext()); }
+  "def"                         { return symbol(ChocoPyTokens.DEF, yytext()); }
+  "del"                         { return symbol(ChocoPyTokens.DEL, yytext()); }
+  "elif"                         { return symbol(ChocoPyTokens.ELIF, yytext()); }
+  "else"                         { return symbol(ChocoPyTokens.ELSE, yytext()); }
+  "except"                         { return symbol(ChocoPyTokens.EXCEPT, yytext()); }
+  "finally"                         { return symbol(ChocoPyTokens.FINALLY, yytext()); }
+  "for"                         { return symbol(ChocoPyTokens.FOR, yytext()); }
+  "from"                         { return symbol(ChocoPyTokens.FROM, yytext()); }
+  "global"                        { return symbol(ChocoPyTokens.GLOBAL, yytext()); }
+  "if"                        { return symbol(ChocoPyTokens.IF, yytext()); }
+  "import"                        { return symbol(ChocoPyTokens.IMPORT, yytext()); }
+  "in"                        { return symbol(ChocoPyTokens.IN, yytext()); }
+  "is"                        { return symbol(ChocoPyTokens.IS, yytext()); }
+  "lambda"                        { return symbol(ChocoPyTokens.LAMBDA, yytext()); }
+  "nonlocal"                        { return symbol(ChocoPyTokens.NONLOCAL, yytext()); }
+  "not"                        { return symbol(ChocoPyTokens.NOT, yytext()); }
+  "or"                        { return symbol(ChocoPyTokens.OR, yytext()); }
+  "pass"                        { return symbol(ChocoPyTokens.PASS, yytext()); }
+  "raise"                        { return symbol(ChocoPyTokens.RAISE, yytext()); }
+  "return"                        { return symbol(ChocoPyTokens.RETURN, yytext()); }
+  "try"                        { return symbol(ChocoPyTokens.TRY, yytext()); }
+  "while"                        { return symbol(ChocoPyTokens.WHILE, yytext()); }
+  "with"                        { return symbol(ChocoPyTokens.WITH, yytext()); }
+  "yield"                        { return symbol(ChocoPyTokens.YIELD, yytext()); }        
 
   /* Operators. */
+  /* The following is a space-separated list of symbols that correspond to distinct ChocoPy tokens: 
+   + - * // % < > <= >= == != = ( ) [ ] , : . -> */
+
   "+"                         { return symbol(ChocoPyTokens.PLUS, yytext()); }
+  "-"                         { return symbol(ChocoPyTokens.MINUS, yytext()); }
+  "*"                         { return symbol(ChocoPyTokens.TIMES, yytext()); }
+  "//"                        { return symbol(ChocoPyTokens.INTEGER_DIVISION, yytext()); }
+  "%"                         { return symbol(ChocoPyTokens.MOD, yytext()); }
+  "<"                         { return symbol(ChocoPyTokens.LESS_THAN, yytext()); }
+  ">"                         { return symbol(ChocoPyTokens.GREATER_THAN, yytext()); }
+  "<="                        { return symbol(ChocoPyTokens.LESS_OR_EQUAL_THAN, yytext()); }
+  ">="                        { return symbol(ChocoPyTokens.GREATER_OR_EQUAL_THAN, yytext()); }
+  "=="                        { return symbol(ChocoPyTokens.EQUALS, yytext()); }
+  "!="                        { return symbol(ChocoPyTokens.NOT_EQUALS, yytext()); }
+  "="                         { return symbol(ChocoPyTokens.ASSIGN, yytext()); }
+  "("                         { return symbol(ChocoPyTokens.LEFT_PARENTHESIS, yytext()); }
+  ")"                         { return symbol(ChocoPyTokens.RIGHT_PARENTHESIS, yytext()); }
+  "["                         { return symbol(ChocoPyTokens.LEFT_BRACKET, yytext()); }
+  "]"                         { return symbol(ChocoPyTokens.RIGHT_BRACKET, yytext()); }
+  ","                         { return symbol(ChocoPyTokens.COMMA, yytext()); }
+  ":"                         { return symbol(ChocoPyTokens.COLON, yytext()); }
+  "."                         { return symbol(ChocoPyTokens.DOT, yytext()); }
+  "->"                        { return symbol(ChocoPyTokens.RIGHT_ARROW, yytext()); }
+
+  /* Comments */
+  "#"                         { yybegin(COMMENT_HANDLER);}
+
+  /* Identifiers. */
+ {Identifier}                 { return symbol(ChocoPyTokens.IDENTIFIER, yytext()); }
 
   /* Whitespace. */
   {WhiteSpace}                { /* ignore */ }
+}
+
+<INDENT_HANDLER> {
+    {WhiteSpace}*{LineBreak}    { /* ignore */ }
+
+    {WhiteSpace}                { space_counter++; }
+
+    .                           {
+                                    yypushback(1);
+
+                                    if(initial_spaces_by_line.empty()){
+                                        initial_spaces_by_line.push(0);
+                                    }
+                                    int top = initial_spaces_by_line.peek();
+
+                                    if(space_counter >= top){
+                                        yybegin(YYINITIAL);
+                                        if(space_counter > top){
+                                            initial_spaces_by_line.push(space_counter);
+                                            return symbol(ChocoPyTokens.INDENT);
+                                        }
+                                    }
+
+                                    if(space_counter < top) yybegin(DEDENT_HANDLER);
+                                }
+}
+
+<DEDENT_HANDLER> {
+    .                           {
+                                    yypushback(1); 
+
+                                    int top = initial_spaces_by_line.pop();
+                                    if(space_counter < top){
+                                        return symbol(ChocoPyTokens.DEDENT);
+                                    }
+
+                                    yybegin(YYINITIAL);
+
+                                    if(space_counter > top){
+                                        return symbol(ChocoPyTokens.INDENTATION_ERROR);
+                                    }
+                                }
 }
 
 <<EOF>>                       { return symbol(ChocoPyTokens.EOF); }
