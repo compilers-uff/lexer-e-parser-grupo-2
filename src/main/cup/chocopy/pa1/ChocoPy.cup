@@ -143,12 +143,15 @@ action code {:
  * in actions ( {: ... :} ).
  */
 terminal NEWLINE;
+terminal INDENT;
+terminal DEDENT;
 
 /* Errors */
 /* Returned by the lexer for erroneous tokens.  Since it does not appear in
  * the grammar, it indicates a syntax error. */
 terminal UNRECOGNIZED;   
 terminal INTEGER_OVERFLOW_LEXICAL_ERROR;
+terminal INDENTATION_ERROR;
 
 /* Keywords. */
 terminal String FALSE; 

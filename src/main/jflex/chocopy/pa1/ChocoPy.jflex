@@ -1,5 +1,6 @@
 package chocopy.pa1;
 import java_cup.runtime.*;
+import java.util.Stack;
 
 %%
 
@@ -48,6 +49,9 @@ import java_cup.runtime.*;
             value);
     }
 
+    Stack<Integer> initial_spaces_by_line = new Stack<>();
+    int space_counter = 0;
+
 %}
 
 /* Macros (regexes used in rules below) */
@@ -77,6 +81,11 @@ Identifier = [a-zA-Z_][a-zA-Z_0-9]*
 
 %state COMMENT_HANDLER
 
+%state INDENT_HANDLER
+
+%state DEDENT_HANDLER
+
+
 %%
 
 {IdStringLiteral}           {  return symbol(ChocoPyTokens.IDSTRING, yytext()); }
@@ -95,7 +104,9 @@ Identifier = [a-zA-Z_][a-zA-Z_0-9]*
 <YYINITIAL> {
 
   /* Delimiters. */
-  {LineBreak}                 { return symbol(ChocoPyTokens.NEWLINE); }
+  {LineBreak}                 { yybegin(INDENT_HANDLER);
+                                space_counter = 0;
+                                return symbol(ChocoPyTokens.NEWLINE); }
 
   /* Literals. */
   {IntegerLiteral} { try {
@@ -182,6 +193,48 @@ try, while, with, yield.*/
 
   /* Whitespace. */
   {WhiteSpace}                { /* ignore */ }
+}
+
+<INDENT_HANDLER> {
+    {WhiteSpace}*{LineBreak}    { /* ignore */ }
+
+    {WhiteSpace}                { space_counter++; }
+
+    .                           {
+                                    yypushback(1);
+
+                                    if(initial_spaces_by_line.empty()){
+                                        initial_spaces_by_line.push(0);
+                                    }
+                                    int top = initial_spaces_by_line.peek();
+
+                                    if(space_counter >= top){
+                                        yybegin(YYINITIAL);
+                                        if(space_counter > top){
+                                            initial_spaces_by_line.push(space_counter);
+                                            return symbol(ChocoPyTokens.INDENT);
+                                        }
+                                    }
+
+                                    if(space_counter < top) yybegin(DEDENT_HANDLER);
+                                }
+}
+
+<DEDENT_HANDLER> {
+    .                           {
+                                    yypushback(1); 
+
+                                    int top = initial_spaces_by_line.pop();
+                                    if(space_counter < top){
+                                        return symbol(ChocoPyTokens.DEDENT);
+                                    }
+
+                                    yybegin(YYINITIAL);
+
+                                    if(space_counter > top){
+                                        return symbol(ChocoPyTokens.INDENTATION_ERROR);
+                                    }
+                                }
 }
 
 <<EOF>>                       { return symbol(ChocoPyTokens.EOF); }
