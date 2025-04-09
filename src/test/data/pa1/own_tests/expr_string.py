@@ -1,1 +1,1 @@
- "#Type12!!? :: \" \\ \r \n" + "SomeRandomClass"
+ "#Type12!!? :: \" \\ \r \n" + "SomeRandomClass" + "a"
