@@ -316,6 +316,8 @@ member_expr ::= cexpr:c_ex DOT:dot IDENTIFIER:i {: RESULT =  MemberExpr(c_exxlef
                       c_ex, i);:}
               ;
 
+index_expr ::=  cexpr:c LEFT_BRACKET:lb expr:e RIGHT_BRACKET:rb {: RESULT = IndexExpr(cxleft, rbxright, c, e);:}
+              ;
 literal ::= NONE:n {: RESULT = new NoneLiteral(nxleft, nxright);:}
         | TRUE:t {: RESULT = new BooleanLiteral(txleft, txright, true);:}
         | FALSE:f {:  RESULT = new BooleanLiteral(fxleft, fxright, false);:}
