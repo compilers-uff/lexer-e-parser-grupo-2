@@ -284,3 +284,16 @@ binary_expr ::= expr:e1 PLUS:op expr:e2
                         {: RESULT = new BinaryExpr(e1xleft, e2xright,
                                                    e1, op, e2); :}
               ;
+
+bin_op ::= PLUS:plus {:RESULT = plus;:}
+         | MINUS:minus {:RESULT = minus;:}
+         | TIMES:times {:RESULT = times;:}
+         | INTEGER_DIVISION:i_d {:RESULT = i_d;:}
+         | MOD:mod {:RESULT = mod;:}
+         | LESS_THAN:l_t {:RESULT = l_t;:}
+         | GREATER_THAN:g_t {:RESULT = g_t;:}
+         | LESS_OR_EQUAL_THAN:l_e_t {:RESULT = l_e_t;:}
+         | GREATER_OR_EQUAL_THAN:g_e_t {:RESULT = g_e_t;:}
+         | EQUALS:equals {:RESULT = equals;:}
+         | NOT_EQUALS:n_equals {:RESULT = n_equals;:}
+         | IS:is {:RESULT = is;:};
