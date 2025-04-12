@@ -312,6 +312,9 @@ binary_expr ::= expr:e1 bin_op:op expr:e2
                                                    e1, op, e2); :}
               ;
 
+member_expr ::= cexpr:c_ex DOT:dot IDENTIFIER:i {: RESULT =  MemberExpr(c_exxleft, ixright,
+                      c_ex, i);:}
+              ;
 
 literal ::= NONE:n {: RESULT = new NoneLiteral(nxleft, nxright);:}
         | TRUE:t {: RESULT = new BooleanLiteral(txleft, txright, true);:}
