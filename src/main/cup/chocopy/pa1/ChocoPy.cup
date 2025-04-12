@@ -300,10 +300,7 @@ binary_expr ::= expr:e1 bin_op:op expr:e2
 literal ::= NONE:n {: RESULT = new NoneLiteral(nxleft, nxright);:}
         | TRUE:t {: RESULT = new BooleanLiteral(txleft, txright, true);:}
         | FALSE:f {:  RESULT = new BooleanLiteral(fxleft, fxright, false);:}
-        | INTEGER:i {:  
-                        int integer = Integer.parseInt(i);
-                        RESULT = new IntegerLiteral(ixleft, ixright, integer); 
-                    :}
+        | INTEGER_LITERAL:i {: RESULT = new IntegerLiteral(ixleft, ixright, i); :}
         | IDSTRING:is {:  RESULT = new StringLiteral(isxleft, isxright, is); :}
         | STRING:s {:  RESULT = new StringLiteral(sxleft, sxright, s); :}
         ;
