@@ -307,9 +307,16 @@ expr ::= binary_expr:e  {: RESULT = e; :}
 
 /* A binary expression, illustrating how to find the left and right
  * source position of a phrase. */
-binary_expr ::= expr:e1 bin_op:op expr:e2
-                        {: RESULT = new BinaryExpr(e1xleft, e2xright,
-                                                   e1, op, e2); :}
+cexpr ::=  IDENTIFIER:i {: RESULT =  new Identifier(ixleft, ixright, i);:}
+          | INTEGER_LITERAL:n       {: RESULT = new IntegerLiteral(nxleft, nxright, n); :}
+          |
+          | LEFT_PARENTHESIS:lp expr:e RIGHT_PARENTHESIS:rp {: RESULT = e; :}
+          | member_expr:me {: RESULT = me;:}
+          | index_expr:ie {: RESULT = ie;:}
+          |
+          |
+          | cexpr:e1 bin_op:op cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, op, e2); :}
+          | MINUS:minus cexpr:c_e {:UnaryExpr(minuxleft, c_exright, minus, c_e);:}
               ;
 
 member_expr ::= cexpr:c_ex DOT:dot IDENTIFIER:i {: RESULT =  MemberExpr(c_exxleft, ixright,
