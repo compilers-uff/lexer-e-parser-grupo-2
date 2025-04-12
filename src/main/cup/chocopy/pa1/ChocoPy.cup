@@ -231,10 +231,19 @@ non terminal List<Declaration> program_head;
 non terminal List<Stmt>        stmt_list, opt_stmt_list;
 non terminal Stmt              stmt, expr_stmt;
 non terminal Expr              expr, binary_expr;
-
+non terminal String            bin_op;
 /* Precedences (lowest to highest) for resolving what would otherwise be
  * ambiguities in the form of shift/reduce conflicts.. */
-precedence left PLUS;
+//precedente right ;
+precedence left OR;
+precedence left AND;
+precedence nonassoc NOT;
+precedence nonassoc EQUALS, NOT_EQUALS, LESS_THAN, GREATER_THAN, LESS_OR_EQUAL_THAN, GREATER_OR_EQUAL_THAN, IS;
+precedence left PLUS, MINUS;
+precedence left TIMES, INTEGER_DIVISION, MOD;
+//precedence nonassoc UNARY_MINUS;
+precedence left DOT, LEFT_BRACKET, RIGHT_BRACKET;
+
 
 /* The start symbol. */
 start with program;
@@ -280,7 +289,22 @@ expr ::= binary_expr:e  {: RESULT = e; :}
 
 /* A binary expression, illustrating how to find the left and right
  * source position of a phrase. */
-binary_expr ::= expr:e1 PLUS:op expr:e2
+binary_expr ::= expr:e1 bin_op:op expr:e2
                         {: RESULT = new BinaryExpr(e1xleft, e2xright,
                                                    e1, op, e2); :}
               ;
+
+/* binary operators */
+bin_op ::= PLUS:plus {:RESULT = plus;:}
+         | MINUS:minus {:RESULT = minus;:}
+         | TIMES:times {:RESULT = times;:}
+         | INTEGER_DIVISION:i_d {:RESULT = i_d;:}
+         | MOD:mod {:RESULT = mod;:}
+         | LESS_THAN:l_t {:RESULT = l_t;:}
+         | GREATER_THAN:g_t {:RESULT = g_t;:}
+         | LESS_OR_EQUAL_THAN:l_e_t {:RESULT = l_e_t;:}
+         | GREATER_OR_EQUAL_THAN:g_e_t {:RESULT = g_e_t;:}
+         | EQUALS:equals {:RESULT = equals;:}
+         | NOT_EQUALS:n_equals {:RESULT = n_equals;:}
+         | IS:is {:RESULT = is;:}
+         ;
