@@ -269,6 +269,16 @@ program_head ::= /* not implemented; currently matches empty string */
                                      {: RESULT = empty(); :}
                 ;
 
+global_decl ::= GLOBAL:global IDENTIFIER:id_label NEWLINE {: 
+                                                        Identifier id = new Identifier(id_labelxleft, id_labelxright, id_label);
+                                                        RESULT = new GlobalDecl(globalxleft, id_labelxright, id); 
+                                                    :};
+
+nonlocal_decl ::= NONLOCAL:nonlocal IDENTIFIER:id_label NEWLINE {: 
+                                                        Identifier id = new Identifier(id_labelxleft, id_labelxright, id_label);
+                                                        RESULT = new NonLocalDecl(nonlocalxleft, id_labelxright, id); 
+                                                    :};
+
 var_def ::= typed_var:t_var ASSIGN:assign literal:value NEWLINE:n {: 
                                                                 RESULT = new VarDef(t_varxleft, valuexright, t_var, value);
                                                             :};
