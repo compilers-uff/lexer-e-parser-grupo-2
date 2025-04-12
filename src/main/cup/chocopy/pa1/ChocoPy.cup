@@ -296,7 +296,7 @@ var_def ::= typed_var:t_var ASSIGN:assign literal:value NEWLINE:n {:
 
 typed_var ::= IDENTIFIER:id COLON type:t {:
                                         Identifier cId = new Identifier(idxleft, idxright, id);
-                                        RESULT = new TypedVar(idxleft, idxright, cId, t);
+                                        RESULT = new TypedVar(idxleft, txright, cId, t);
                                     :};
 
 type ::= IDENTIFIER:id                                              {: RESULT = new ClassType(idxleft, idxright, id); :} 
