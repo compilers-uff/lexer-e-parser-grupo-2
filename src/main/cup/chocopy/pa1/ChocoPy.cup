@@ -300,8 +300,12 @@ stmt ::= expr_stmt:s NEWLINE {: RESULT = s; :}
 expr_stmt ::= expr:e    {: RESULT = new ExprStmt(exleft, exright, e); :}
             ;
 
-expr ::= binary_expr:e  {: RESULT = e; :}
-       | INTEGER_LITERAL:n       {: RESULT = new IntegerLiteral(nxleft, nxright, n); :}
+expr ::= cexpr:ce  {: RESULT = ce; :}
+       | NOT:not expr:e {: RESULT = UnaryExpr(notxleft, exright,
+                     not, e); :}
+       |
+       | expr:e1 IF:if1 expr:e2 ELSE:else1 expr:e3 {: IfExpr(e1xleft, e3xright,
+                  e1, e2, e3);:}
        ;
 
 
