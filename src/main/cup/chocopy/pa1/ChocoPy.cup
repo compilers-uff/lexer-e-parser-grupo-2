@@ -231,6 +231,7 @@ non terminal List<Declaration> program_head;
 non terminal List<Stmt>        stmt_list, opt_stmt_list;
 non terminal Stmt              stmt, expr_stmt;
 non terminal Expr              expr, binary_expr;
+non terminal Literal           literal;
 
 /* Precedences (lowest to highest) for resolving what would otherwise be
  * ambiguities in the form of shift/reduce conflicts.. */
@@ -284,3 +285,14 @@ binary_expr ::= expr:e1 PLUS:op expr:e2
                         {: RESULT = new BinaryExpr(e1xleft, e2xright,
                                                    e1, op, e2); :}
               ;
+
+literal ::= NONE:n {: RESULT = new NoneLiteral(nxleft, nxright);:}
+        | TRUE:t {: RESULT = new BooleanLiteral(txleft, txright, true);:}
+        | FALSE:f {:  RESULT = new BooleanLiteral(fxleft, fxright, false);:}
+        | INTEGER:i {:  
+                        int integer = Integer.parseInt(i);
+                        RESULT = new IntegerLiteral(ixleft, ixright, integer); 
+                    :}
+        | IDSTRING:is {:  RESULT = new StringLiteral(isxleft, isxright, is); :}
+        | STRING:s {:  RESULT = new StringLiteral(sxleft, sxright, s); :}
+        ;
