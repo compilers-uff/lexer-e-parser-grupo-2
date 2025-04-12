@@ -267,6 +267,19 @@ program_head ::= /* not implemented; currently matches empty string */
                                      {: RESULT = empty(); :}
                 ;
 
+var_def ::= typed_var:t_var ASSIGN:assign literal:value NEWLINE:n {: 
+                                                                RESULT = new VarDef(t_varxleft, valuexright, t_var, value);
+                                                            :};
+
+typed_var ::= IDENTIFIER:id COLON type:t {:
+                                        Identifier cId = new Identifier(idxleft, idxright, id);
+                                        RESULT = new TypedVar(idxleft, idxright, cId, t);
+                                    :};
+
+type ::= IDENTIFIER:id                                              {: RESULT = new ClassType(idxleft, idxright, id); :} 
+        | IDSTRING:idstr                                            {: RESULT = new ClassType(idstrxleft, idstrxright, idstr); :}
+        | LEFT_BRACKET:l_bracket type:t RIGHT_BRACKET:r_bracket     {: RESULT = new ListType(l_bracketxleft, r_bracketxright, t); :} ;
+
 opt_stmt_list ::=                    {: RESULT = empty(); :}
                 | stmt_list:s        {: RESULT = s; :}
                 ;
