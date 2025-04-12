@@ -227,7 +227,7 @@ terminal String IDENTIFIER;
  * defines the listed nonterminal identifier symbols to have semantic values
  * of type <type>. */
 non terminal Program           program;
-non terminal List<Declaration> program_head;
+non terminal List<Declaration> class_body;
 non terminal List<Stmt>        stmt_list, opt_stmt_list;
 non terminal Stmt              stmt, expr_stmt;
 non terminal Expr              expr, binary_expr;
@@ -236,9 +236,13 @@ non terminal String            bin_op;
 non terminal TypeAnnotation    type;
 non terminal TypedVar          typed_var;
 non terminal VarDef            var_def;
+non terminal ClassDef          class_def;
 non terminal GlobalDecl        global_decl;
 non terminal NonLocalDecl      nonlocal_decl;
 
+/* Auxiliares */
+non terminal List<Declaration> required_class_body_definitions;
+non terminal Declaration       class_body_definition;
 /* Precedences (lowest to highest) for resolving what would otherwise be
  * ambiguities in the form of shift/reduce conflicts.. */
 //precedente right ;
@@ -258,16 +262,23 @@ start with program;
 
 /*****  GRAMMAR RULES *****/
 
-program ::= program_head:d opt_stmt_list:s
-        {: RESULT = new Program(d.isEmpty() ? getLeft(s) : getLeft(d),
-                                sxright, d, s, errors);
-        :}
-        ;
+/* class_def e não terminais auxiliares */
 
-/* Initial list of declarations. */
-program_head ::= /* not implemented; currently matches empty string */
-                                     {: RESULT = empty(); :}
-                ;
+class_def ::= CLASS:c IDENTIFIER:n LEFT_PARENTHESIS IDENTIFIER:sc RIGHT_PARENTHESIS COLON NEWLINE INDENT class_body:cb DEDENT:d 
+                {: 
+                    Identifier name = new Identifier(nxleft, nxright, n);
+                    Identifier superClass = new Identifier(scxleft, scxright, sc);
+                    RESULT = new ClassDef(cxleft, cbxright, name, superClass, cb);
+                :}
+            ;
+
+class_body ::= PASS NEWLINE                                                          {: RESULT = empty(); :}
+            |  required_class_body_definitions:rcbd                                  {: RESULT = rcbd; :}
+            ;
+
+required_class_body_definitions ::= required_class_body_definitions:rcbd class_body_definition:cbd {: RESULT = combine(rcbd, cbd); :}
+                                | class_body_definition:cbd                                        {: RESULT = single(cbd); :}
+                                ;
 
 global_decl ::= GLOBAL:global IDENTIFIER:id_label NEWLINE {: 
                                                         Identifier id = new Identifier(id_labelxleft, id_labelxright, id_label);
