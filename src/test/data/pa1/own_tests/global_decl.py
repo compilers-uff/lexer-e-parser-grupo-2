@@ -1,0 +1,1 @@
+nonlocal global_variable
