@@ -1,1 +1,1 @@
-nonlocal global_variable
+global global_variable
