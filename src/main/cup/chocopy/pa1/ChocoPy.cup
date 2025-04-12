@@ -233,6 +233,9 @@ non terminal Stmt              stmt, expr_stmt;
 non terminal Expr              expr, binary_expr;
 non terminal Literal           literal;
 non terminal String            bin_op;
+non terminal TypeAnnotation    type;
+non terminal TypedVar          typed_var;
+non terminal VarDef            var_def;
 
 /* Precedences (lowest to highest) for resolving what would otherwise be
  * ambiguities in the form of shift/reduce conflicts.. */
