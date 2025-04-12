@@ -280,6 +280,9 @@ required_class_body_definitions ::= required_class_body_definitions:rcbd class_b
                                 | class_body_definition:cbd                                        {: RESULT = single(cbd); :}
                                 ;
 
+class_body_definition ::= var_def:vd                                 {: RESULT = vd; :}
+                       | func_def:fd                                 {: RESULT = fd; :}
+                       ;
 global_decl ::= GLOBAL:global IDENTIFIER:id_label NEWLINE {: 
                                                         Identifier id = new Identifier(id_labelxleft, id_labelxright, id_label);
                                                         RESULT = new GlobalDecl(globalxleft, id_labelxright, id); 
