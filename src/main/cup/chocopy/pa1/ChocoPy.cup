@@ -292,6 +292,31 @@ type ::= IDENTIFIER:id                                              {: RESULT = 
         | IDSTRING:idstr                                            {: RESULT = new ClassType(idstrxleft, idstrxright, idstr); :}
         | LEFT_BRACKET:l_bracket type:t RIGHT_BRACKET:r_bracket     {: RESULT = new ListType(l_bracketxleft, r_bracketxright, t); :} ;
 
+stmt ::= simple_stmt NEWLINE {:  :}
+        |   
+
+simple_stmt ::= PASS {::}
+            | expr:e {:
+                        Location left = new ComplexSymbolFactory.Location(e.getLocation()[0], e.getLocation()[1]); 
+                        Location right = new ComplexSymbolFactory.Location(e.getLocation()[2], e.getLocation()[3]); 
+                        RESULT = new ExprStmt(left, right, e); 
+                    :}
+            | RETURN:ret {: RESULT = ReturnStmt(retxleft, retxright, null); :}
+            | RETURN:ret expr:e {: RESULT = ReturnStmt(retxleft, retxright, e); :}
+            | targets:tgs expr:e    {: 
+                                        Location right = new ComplexSymbolFactory.Location(e.getLocation()[2], e.getLocation()[3]); 
+                                        RESULT = new AssignStmt(getLeft(tgs), right, tgs, e); 
+                                    :};
+
+targets ::= target:t ASSIGN          {: RESULT = single(t); :}
+            | targets:targets target:t ASSIGN {: RESULT = combine(targets, t); :}
+ 
+target ::= IDENTIFIER:id {: RESULT = new Identifier(idxleft, idxright, id); :};
+
+//block ::=
+
+
+
 opt_stmt_list ::=                    {: RESULT = empty(); :}
                 | stmt_list:s        {: RESULT = s; :}
                 ;
