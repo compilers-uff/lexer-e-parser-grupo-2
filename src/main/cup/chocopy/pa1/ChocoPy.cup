@@ -250,6 +250,7 @@ non terminal Expr              expr_ifelse;
 precedence right expr_ifelse;
 precedence left OR;
 precedence left AND;
+precedence nonassoc IDENTIFIER;
 precedence nonassoc NOT;
 precedence nonassoc EQUALS, NOT_EQUALS, LESS_THAN, GREATER_THAN, LESS_OR_EQUAL_THAN, GREATER_OR_EQUAL_THAN, IS;
 precedence left PLUS, MINUS;
