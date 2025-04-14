@@ -1,9 +1,3 @@
 class MyClass(Object):
-    if a: 
-        if b:
-            a = 7
-        else:
-            a = b
-    a = 8
-    if c:
-        a = 3
+    numero1: int = 10
+    numero2: int = 11
