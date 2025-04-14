@@ -236,6 +236,7 @@ non terminal String            bin_op;
 non terminal TypeAnnotation    type;
 non terminal TypedVar          typed_var;
 non terminal VarDef            var_def;
+
 non terminal MemberExpr        member_expr;
 non terminal IndexExpr         index_expr;
 
@@ -243,6 +244,10 @@ non terminal IndexExpr         index_expr;
 non terminal List<Expr>        expr_params;
 non terminal List<Expr>        optional_exprs;
 non terminal Expr              expr_ifelse;
+
+non terminal GlobalDecl        global_decl;
+non terminal NonLocalDecl      nonlocal_decl;
+
 
 /* Precedences (lowest to highest) for resolving what would otherwise be
  * ambiguities in the form of shift/reduce conflicts.. */
@@ -275,6 +280,16 @@ program ::= program_head:d opt_stmt_list:s
 program_head ::= /* not implemented; currently matches empty string */
                                      {: RESULT = empty(); :}
                 ;
+
+global_decl ::= GLOBAL:global IDENTIFIER:id_label NEWLINE {: 
+                                                        Identifier id = new Identifier(id_labelxleft, id_labelxright, id_label);
+                                                        RESULT = new GlobalDecl(globalxleft, id_labelxright, id); 
+                                                    :};
+
+nonlocal_decl ::= NONLOCAL:nonlocal IDENTIFIER:id_label NEWLINE {: 
+                                                        Identifier id = new Identifier(id_labelxleft, id_labelxright, id_label);
+                                                        RESULT = new NonLocalDecl(nonlocalxleft, id_labelxright, id); 
+                                                    :};
 
 var_def ::= typed_var:t_var ASSIGN:assign literal:value NEWLINE:n {: 
                                                                 RESULT = new VarDef(t_varxleft, valuexright, t_var, value);
