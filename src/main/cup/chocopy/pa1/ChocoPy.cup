@@ -230,12 +230,27 @@ non terminal Program           program;
 non terminal List<Declaration> class_body;
 non terminal List<Stmt>        stmt_list, opt_stmt_list;
 non terminal Stmt              stmt, expr_stmt;
-non terminal Expr              expr, binary_expr;
+non terminal Expr              expr, cexpr;
 non terminal Literal           literal;
 non terminal String            bin_op;
 non terminal TypeAnnotation    type;
 non terminal TypedVar          typed_var;
 non terminal VarDef            var_def;
+
+
+non terminal MemberExpr        member_expr;
+non terminal IndexExpr         index_expr;
+
+/* Auxiliares */
+non terminal List<Expr>        expr_params;
+non terminal List<Expr>        optional_exprs;
+non terminal Expr              expr_ifelse;
+
+non terminal GlobalDecl        global_decl;
+non terminal NonLocalDecl      nonlocal_decl;
+
+
+
 non terminal ClassDef          class_def;
 non terminal GlobalDecl        global_decl;
 non terminal NonLocalDecl      nonlocal_decl;
@@ -243,11 +258,14 @@ non terminal NonLocalDecl      nonlocal_decl;
 /* Auxiliares */
 non terminal List<Declaration> required_class_body_definitions;
 non terminal Declaration       class_body_definition;
+
 /* Precedences (lowest to highest) for resolving what would otherwise be
  * ambiguities in the form of shift/reduce conflicts.. */
-//precedente right ;
+
+precedence right expr_ifelse;
 precedence left OR;
 precedence left AND;
+precedence nonassoc IDENTIFIER;
 precedence nonassoc NOT;
 precedence nonassoc EQUALS, NOT_EQUALS, LESS_THAN, GREATER_THAN, LESS_OR_EQUAL_THAN, GREATER_OR_EQUAL_THAN, IS;
 precedence left PLUS, MINUS;
@@ -326,18 +344,49 @@ stmt ::= expr_stmt:s NEWLINE {: RESULT = s; :}
 expr_stmt ::= expr:e    {: RESULT = new ExprStmt(exleft, exright, e); :}
             ;
 
-expr ::= binary_expr:e  {: RESULT = e; :}
-       | INTEGER_LITERAL:n       {: RESULT = new IntegerLiteral(nxleft, nxright, n); :}
+expr ::= cexpr:ce  {: RESULT = ce; :}
+       | NOT:not expr:e {: RESULT = UnaryExpr(notxleft, exright,
+                     not, e); :}
+       | expr:e_1a AND:and_op expr:e2_a                          {: RESULT = new BinaryExpr(e1_axleft, e2_axright, e1_a, and_op, e2_a); :}
+       | expr:e1_o OR:or_op expr:e2_o                            {: RESULT = new BinaryExpr(e1_oxleft, e2_oxright, e1_o, or_op, e2_o); :}
+       | expr_ifelse:e_ie {: RESULT = e_ie;:}
        ;
 
+expr_ifelse ::= expr:e1 IF:if1 expr:e2 ELSE:else1 expr:e3 {: RESULT = new IfExpr(e1xleft, e3xright,
+                  e1, e2, e3);:};
 
 /* A binary expression, illustrating how to find the left and right
  * source position of a phrase. */
-binary_expr ::= expr:e1 bin_op:op expr:e2
-                        {: RESULT = new BinaryExpr(e1xleft, e2xright,
-                                                   e1, op, e2); :}
+cexpr ::=  IDENTIFIER:i {: RESULT =  new Identifier(ixleft, ixright, i);:}
+          | literal:n       {: RESULT = n; :}
+          | LEFT_BRACKET:lb expr_params:ep RIGHT_BRACKET:rb {: RESULT = new ListExpr(lbxleft, rbxright, ep); :}
+          | LEFT_PARENTHESIS:lp expr:e RIGHT_PARENTHESIS:rp {: RESULT = e; :}
+          | member_expr:me {: RESULT = me;:}
+          | index_expr:ie {: RESULT = ie;:}
+          | member_expr:me LEFT_PARENTHESIS:lp expr_params:ep RIGHT_PARENTHESIS:rp {: RESULT = new MethodCallExpr(mexleft, rpxright, me, ep); :}
+          | IDENTIFIER:id LEFT_PARENTHESIS:lp expr_params:ep RIGHT_PARENTHESIS:rp          {: 
+                                                                                            Identifier identifier = new Identifier(idxleft, idxright, id);
+                                                                                            RESULT = new CallExpr(idxleft, rpxright, identifier, ep); 
+                                                                                        :}
+          | cexpr:e1 bin_op:op cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, op, e2); :}
+          | MINUS:minus cexpr:c_e {: RESULT = new UnaryExpr(minuxleft, c_exright, minus, c_e);:}
               ;
 
+expr_params ::= optional_exprs:oe                   {: RESULT = oe; :}
+              |                                     {: RESULT = empty(); :}
+              ;
+
+optional_exprs ::= expr:e                           {: RESULT = single(e); :}
+            | optional_exprs:oe COMMA expr:e        {: RESULT = combine(oe, e); :}
+            ;
+
+
+
+member_expr ::= cexpr:c_ex DOT:dot IDENTIFIER:i {: RESULT =  new MemberExpr(c_exxleft, ixright, c_ex, i);:}
+              ;
+
+index_expr ::=  cexpr:c LEFT_BRACKET:lb expr:e RIGHT_BRACKET:rb {: RESULT = new IndexExpr(cxleft, rbxright, c, e);:}
+              ;
 
 literal ::= NONE:n {: RESULT = new NoneLiteral(nxleft, nxright);:}
         | TRUE:t {: RESULT = new BooleanLiteral(txleft, txright, true);:}
