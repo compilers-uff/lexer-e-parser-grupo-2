@@ -251,8 +251,8 @@ non terminal NonLocalDecl      nonlocal_decl;
 
 
 
+non terminal ClassDef          class_def;
 
-non terminal NonLocalDecl      nonlocal_decl;
 
 /* Auxiliares */
 non terminal List<Declaration> required_class_body_definitions;
