@@ -230,41 +230,42 @@ non terminal Program           program;
 non terminal List<Declaration> class_body;
 non terminal List<Stmt>        stmt_list, opt_stmt_list;
 non terminal Stmt              stmt, expr_stmt;
-non terminal Expr              expr;
+non terminal Expr              expr, cexpr;
 non terminal Literal           literal;
 non terminal String            bin_op;
 non terminal TypeAnnotation    type;
 non terminal TypedVar          typed_var;
 non terminal VarDef            var_def;
-non terminal FuncDef           func_def;
-non terminal GlobalDecl        global_decl;
-non terminal NonLocalDecl      nonlocal_decl;
-non terminal ClassDef          class_def;
+
+
 non terminal MemberExpr        member_expr;
 non terminal IndexExpr         index_expr;
 
 /* Auxiliares */
-non terminal Expr              cexpr;
 non terminal List<Expr>        expr_params;
 non terminal List<Expr>        optional_exprs;
-non terminal Expr              expr_ifelse;
+
+non terminal GlobalDecl        global_decl;
+non terminal NonLocalDecl      nonlocal_decl;
+
+
 non terminal List<Declaration> optional_program_declarations;
 non terminal List<Stmt>        optional_program_stmts;
 non terminal Declaration       program_declaration;
+
+
+non terminal ClassDef          class_def;
+non terminal GlobalDecl        global_decl;
+non terminal NonLocalDecl      nonlocal_decl;
+
+/* Auxiliares */
 non terminal List<Declaration> required_class_body_definitions;
 non terminal Declaration       class_body_definition;
-non terminal List<Declaration> optional_func_body_declarations;
-non terminal List<Stmt>        required_func_body_stmts;
-non terminal List<TypedVar>    func_params;
-non terminal List<TypedVar>    optional_typed_vars;
-non terminal Declaration       func_body_declaration;
-non terminal TypeAnnotation    return_type;
 
 
 /* Precedences (lowest to highest) for resolving what would otherwise be
  * ambiguities in the form of shift/reduce conflicts.. */
 
-precedence right expr_ifelse;
 precedence left OR;
 precedence left AND;
 precedence nonassoc IDENTIFIER;
@@ -412,11 +413,12 @@ expr ::= cexpr:ce  {: RESULT = ce; :}
                      not, e); :}
        | expr:e_1a AND:and_op expr:e2_a                          {: RESULT = new BinaryExpr(e1_axleft, e2_axright, e1_a, and_op, e2_a); :}
        | expr:e1_o OR:or_op expr:e2_o                            {: RESULT = new BinaryExpr(e1_oxleft, e2_oxright, e1_o, or_op, e2_o); :}
-       | expr_ifelse:e_ie {: RESULT = e_ie;:}
+       | expr:e1 IF:if1 expr:e2 ELSE:else1 expr:e3 {: RESULT = new IfExpr(e1xleft, e3xright,
+                  e1, e2, e3);:}
        ;
 
-expr_ifelse ::= expr:e1 IF:if1 expr:e2 ELSE:else1 expr:e3 {: RESULT = new IfExpr(e1xleft, e3xright,
-                  e1, e2, e3);:};
+
+
 
 /* A binary expression, illustrating how to find the left and right
  * source position of a phrase. */
@@ -438,6 +440,7 @@ cexpr ::=  IDENTIFIER:i {: RESULT =  new Identifier(ixleft, ixright, i);:}
 expr_params ::= optional_exprs:oe                   {: RESULT = oe; :}
               |                                     {: RESULT = empty(); :}
               ;
+
 
 optional_exprs ::= expr:e                           {: RESULT = single(e); :}
             | optional_exprs:oe COMMA expr:e        {: RESULT = combine(oe, e); :}
