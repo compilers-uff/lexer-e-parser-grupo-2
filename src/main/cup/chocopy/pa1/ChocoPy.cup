@@ -244,19 +244,24 @@ non terminal IndexExpr         index_expr;
 /* Auxiliares */
 non terminal List<Expr>        expr_params;
 non terminal List<Expr>        optional_exprs;
-non terminal Expr              expr_ifelse;
 
 non terminal GlobalDecl        global_decl;
 non terminal NonLocalDecl      nonlocal_decl;
 
 
+non terminal List<Declaration> optional_program_declarations;
+non terminal List<Stmt>        optional_program_stmts;
+non terminal Declaration       program_declaration;
+
 
 non terminal ClassDef          class_def;
-
+non terminal GlobalDecl        global_decl;
+non terminal NonLocalDecl      nonlocal_decl;
 
 /* Auxiliares */
 non terminal List<Declaration> required_class_body_definitions;
 non terminal Declaration       class_body_definition;
+
 
 /* Precedences (lowest to highest) for resolving what would otherwise be
  * ambiguities in the form of shift/reduce conflicts.. */
@@ -277,6 +282,30 @@ start with program;
 
 
 /*****  GRAMMAR RULES *****/
+
+
+/* program e auxiliares */
+
+program ::= optional_program_declarations:opd optional_program_stmts:ops
+            {: RESULT = new Program(opd.isEmpty() ? getLeft(ops) : getLeft(opd),
+                                    opsxright, opd, ops, errors);
+            :}
+        ;
+
+optional_program_declarations ::= optional_program_declarations:opd program_declaration:pd  {: RESULT = combine(opd, pd); :}
+                               |                                                            {: RESULT = empty(); :}
+                               ;
+
+program_declaration ::= var_def:vd                               {: RESULT = vd; :}
+                    | func_def:fd                                {: RESULT = fd; :}
+                    | class_def:cd                               {: RESULT = cd; :}
+                    ;
+
+optional_program_stmts ::= optional_program_stmts:ops stmt:s     {: RESULT = combine(ops, s); :}
+                       |                                         {: RESULT = empty(); :}
+                       ;
+
+
 
 /* class_def e não terminais auxiliares */
 
@@ -299,6 +328,43 @@ required_class_body_definitions ::= required_class_body_definitions:rcbd class_b
 class_body_definition ::= var_def:vd                                 {: RESULT = vd; :}
                        | func_def:fd                                 {: RESULT = fd; :}
                        ;
+       
+/* func_def e não terminais auxiliares */
+
+func_def ::= DEF:d IDENTIFIER:i LEFT_PARENTHESIS func_params:fp RIGHT_PARENTHESIS return_type:rt COLON NEWLINE INDENT optional_func_body_declarations:decls required_func_body_stmts:stmts DEDENT
+                {: 
+                    Identifier id = new Identifier(ixleft, ixright, i);
+                    RESULT = new FuncDef(dxleft, stmtsxright, id, fp, rt, decls, stmts);
+                :}
+           ;
+
+func_params ::= optional_typed_vars:t_vars   {: RESULT = t_vars; :}
+              |                              {: RESULT = empty(); :}
+              ;
+
+optional_typed_vars ::= typed_var:t                         {: RESULT = single(t); :}
+                    | optional_typed_vars:t_var COMMA typed_var:t {: RESULT = combine(t_var, t); :}
+                    ;
+
+
+return_type ::= RIGHT_ARROW type:t                                 {: RESULT = t; :}
+            |                                                      {: RESULT = null; :}
+            ;
+
+optional_func_body_declarations ::= optional_func_body_declarations:ofbd func_body_declaration:fbd  {: RESULT = combine(ofbd, fbd); :}
+                 |                                                                                  {: RESULT = empty(); :}
+                 ;
+
+func_body_declaration ::= global_decl:gd             {: RESULT = gd; :}
+                 | nonlocal_decl:nd                  {: RESULT = nd; :}
+                 | var_def:vd                        {: RESULT = vd; :}
+                 | func_def:fd                       {: RESULT = fd; :}
+                 ;
+
+required_func_body_stmts ::= required_func_body_stmts:rfbs stmt:s       {: RESULT = combine(rfbs, s);  :}
+                | stmt:s                                                {: RESULT = single(s); :} 
+                ;       
+       
 global_decl ::= GLOBAL:global IDENTIFIER:id_label NEWLINE {: 
                                                         Identifier id = new Identifier(id_labelxleft, id_labelxright, id_label);
                                                         RESULT = new GlobalDecl(globalxleft, id_labelxright, id); 
@@ -353,6 +419,7 @@ expr ::= cexpr:ce  {: RESULT = ce; :}
 
 
 
+
 /* A binary expression, illustrating how to find the left and right
  * source position of a phrase. */
 cexpr ::=  IDENTIFIER:i {: RESULT =  new Identifier(ixleft, ixright, i);:}
@@ -373,6 +440,7 @@ cexpr ::=  IDENTIFIER:i {: RESULT =  new Identifier(ixleft, ixright, i);:}
 expr_params ::= optional_exprs:oe                   {: RESULT = oe; :}
               |                                     {: RESULT = empty(); :}
               ;
+
 
 optional_exprs ::= expr:e                           {: RESULT = single(e); :}
             | optional_exprs:oe COMMA expr:e        {: RESULT = combine(oe, e); :}
