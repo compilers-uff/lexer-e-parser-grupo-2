@@ -131,6 +131,29 @@ action code {:
                                                  first.getLocation()[1]);
     }
 
+    ComplexSymbolFactory.Location getRight(List<? extends Node> nodes) {
+        if (nodes.isEmpty()) {
+            return null;
+        }
+        int last_index = nodes.size() - 1;
+        Node last = nodes.get(last_index);
+        return new ComplexSymbolFactory.Location(last.getLocation()[2],
+                                                 last.getLocation()[3]);
+    }
+
+    IfStmt insertElse(IfStmt elif, List<Stmt> elseBody){
+        if (elif.elseBody.isEmpty()){
+            Location left = new ComplexSymbolFactory.Location(elif.getLocation()[0], elif.getLocation()[1]);
+            Location right = getRight(elseBody);
+            return new IfStmt(left, right, elif.condition, elif.thenBody, elseBody);
+        }
+        IfStmt elifInternal = (IfStmt) elif.elseBody.get(0);
+        IfStmt elifNested = insertElse(elifInternal, elseBody);
+        Location newLeft = new ComplexSymbolFactory.Location(elif.getLocation()[0], elif.getLocation()[1]);
+        Location newRight = getRight(elseBody);
+        return new IfStmt(newLeft, newRight, elif.condition, elif.thenBody, single(elifNested));
+    };
+
 :}
 
 /* Terminal symbols (tokens returned by the lexer).  The declaration
@@ -229,7 +252,7 @@ terminal String IDENTIFIER;
 non terminal Program           program;
 non terminal List<Declaration> class_body;
 non terminal List<Stmt>        block;
-non terminal Stmt              simple_stmt, stmt, expr_stmt;
+non terminal Stmt              simple_stmt, stmt;
 non terminal Expr              target;
 non terminal Expr              expr;
 
@@ -255,7 +278,7 @@ non terminal List<Expr>        optional_exprs;
 non terminal List<Declaration> optional_program_declarations;
 non terminal List<Declaration> required_class_body_definitions;
 non terminal List<Declaration> optional_func_body_declarations;
-non terminal List<Stmt>        optional_program_stmts;
+non terminal List<Stmt>        program_stmts;
 non terminal List<Stmt>        required_stmts;
 non terminal List<Stmt>        optional_func_body_stmts;
 non terminal List<TypedVar>    func_params;
@@ -265,22 +288,26 @@ non terminal Declaration       program_declaration;
 non terminal Declaration       class_body_definition;
 non terminal TypeAnnotation    return_type;
 
-non terminal List<Expr>        targets_assign;
-non terminal List<Stmt>        stmt_list, opt_stmt_list;
+non terminal AssignStmt        targets_assign;
+
+non terminal IfStmt            elif_stmt, elif_nested, elif_else;
 
 
 /* Precedences (lowest to highest) for resolving what would otherwise be
  * ambiguities in the form of shift/reduce conflicts.. */
-precedence right IF;
+
+precedence right IF, ELSE;
 precedence left OR;
 precedence left AND;
-precedence nonassoc IDENTIFIER;
+//precedence right IDENTIFIER;
 precedence nonassoc NOT;
 precedence nonassoc EQUALS, NOT_EQUALS, LESS_THAN, GREATER_THAN, LESS_OR_EQUAL_THAN, GREATER_OR_EQUAL_THAN, IS;
 precedence left PLUS, MINUS;
 precedence left TIMES, INTEGER_DIVISION, MOD;
 //precedence nonassoc UNARY_MINUS;
 precedence left DOT, LEFT_BRACKET, RIGHT_BRACKET;
+precedence nonassoc LEFT_PARENTHESIS;
+precedence right ASSIGN;
 
 
 /* The start symbol. */
@@ -292,9 +319,12 @@ start with program;
 
 /* program e auxiliares */
 
-program ::= optional_program_declarations:opd optional_program_stmts:ops
-            {: RESULT = new Program(opd.isEmpty() ? getLeft(ops) : getLeft(opd),
-                                    opsxright, opd, ops, errors);
+program ::= optional_program_declarations:opd program_stmts:ps
+            {: RESULT = new Program(opd.isEmpty() ? getLeft(ps) : getLeft(opd),
+                                    psxright, opd, ps, errors);
+            :}
+        |  optional_program_declarations:opd {: RESULT = new Program(opdxleft,
+                                    opdxright, opd, empty(), errors);
             :}
         ;
 
@@ -307,8 +337,8 @@ program_declaration ::= var_def:vd                               {: RESULT = vd;
                     | class_def:cd                               {: RESULT = cd; :}
                     ;
 
-optional_program_stmts ::= optional_program_stmts:ops stmt:s     {: RESULT = combine(ops, s); :}
-                       |                                         {: RESULT = empty(); :}
+program_stmts ::= program_stmts:ps stmt:s                          {: RESULT = combine(ps, s); :}
+                       | stmt:s                                     {: RESULT = single(s); :}
                        ;
 
 
@@ -397,15 +427,60 @@ typed_var ::= IDENTIFIER:id COLON type:t {:
 
 type ::= IDENTIFIER:id                                              {: RESULT = new ClassType(idxleft, idxright, id); :} 
         | IDSTRING:idstr                                            {: RESULT = new ClassType(idstrxleft, idstrxright, idstr); :}
-        | LEFT_BRACKET:l_bracket type:t RIGHT_BRACKET:r_bracket     {: RESULT = new ListType(l_bracketxleft, r_bracketxright, t); :} ;
+        | LEFT_BRACKET:l_bracket type:t RIGHT_BRACKET:r_bracket     {: RESULT = new ListType(l_bracketxleft, r_bracketxright, t); :} ;            
+
+stmt ::= simple_stmt:s_stmt NEWLINE                                     {: RESULT = s_stmt; :}
+        | WHILE:w expr:cond COLON block:stmts                           {: RESULT = new WhileStmt(wxleft, stmtsxright, cond, stmts); :}
+        | FOR:f IDENTIFIER:id_token IN expr:iterable COLON block:body   {: 
+                                                                Identifier id = new Identifier(id_tokenxleft, id_tokenxright, id_token);
+                                                                RESULT = new ForStmt(fxleft, bodyxright, id, iterable, body); 
+                                                            :}
+        | IF:if_token expr:condition COLON block:body       {: RESULT = new IfStmt(if_tokenxleft, bodyxright, condition, body, empty()); :}
+        | IF:if_token expr:condition COLON block:ifBody ELSE COLON block:elseBody {: 
+                                                RESULT = new IfStmt(if_tokenxleft, elseBodyxright, condition, ifBody, elseBody); 
+                                            :}
+        | IF:if_token expr:condition COLON block:body elif_nested:el_nested {: 
+                                                    RESULT = new IfStmt(if_tokenxleft, el_nestedxright, condition, body, single(el_nested)); 
+                                                :}
+        | IF:if_token expr:condition COLON block:body elif_else:el_else {: 
+                                                    RESULT = new IfStmt(if_tokenxleft, el_elsexright, condition, body, single(el_else)); 
+                                                :};
+
+elif_else ::= elif_nested:el_nested ELSE COLON block:elseBody {: RESULT = insertElse(el_nested, elseBody); :};
+
+elif_nested ::= elif_stmt:el  {: RESULT = el; :}
+            | elif_stmt:el elif_nested:el_nested {: RESULT = new IfStmt(elxleft, el_nestedxright, el.condition, el.thenBody, single(el_nested)); :};
+
+elif_stmt ::= ELIF:el expr:condition COLON block:body  {: 
+                                                        RESULT = new IfStmt(elxleft, bodyxright, condition, body, empty());
+                                                     :};
+
+simple_stmt ::= PASS {::}
+            | expr:e {: RESULT = new ExprStmt(exleft, exright, e); :}
+            | RETURN:ret {: RESULT = new ReturnStmt(retxleft, retxright, null); :}
+            | RETURN:ret expr:e {: RESULT = new ReturnStmt(retxleft, retxright, e); :}
+            | targets_assign:tgs {: RESULT = tgs; :};
+
+targets_assign ::= target:t ASSIGN expr:e               {: RESULT = new AssignStmt(txleft, exright, single(t), e); :}
+            | target:t ASSIGN targets_assign:tgs_assign {: 
+                                                            tgs_assign.targets.add(0, t);
+                                                            RESULT = tgs_assign;
+                                                        :};
+ 
+target ::= IDENTIFIER:id {: RESULT = new Identifier(idxleft, idxright, id); :};
+
+block ::= NEWLINE INDENT program_stmts:s_list DEDENT {: RESULT = s_list; :};
 
 expr ::= cexpr:ce  {: RESULT = ce; :}
        | NOT:not_op expr:e {: RESULT = new UnaryExpr(not_opxleft, exright, not_op, e); :}
        | expr:e1_a AND:and_op expr:e2_a                          {: RESULT = new BinaryExpr(e1_axleft, e2_axright, e1_a, and_op, e2_a); :}
        | expr:e1_o OR:or_op expr:e2_o                            {: RESULT = new BinaryExpr(e1_oxleft, e2_oxright, e1_o, or_op, e2_o); :}
-       | expr:e1 IF:if1 expr:e2 ELSE:else1 expr:e3 {: RESULT = new IfExpr(e1xleft, e3xright, e1, e2, e3);:}
+       | expr:e1 IF:if1 expr:e2 ELSE:else1 expr:e3 {: RESULT = new IfExpr(e1xleft, e3xright, e2, e1, e3);:}
        ;
 
+
+/* A binary expression, illustrating how to find the left and right
+ * source position of a phrase. */
 cexpr ::=  IDENTIFIER:i {: RESULT =  new Identifier(ixleft, ixright, i);:}
           | literal:n       {: RESULT = n; :}
           | LEFT_BRACKET:lb expr_params:ep RIGHT_BRACKET:rb {: RESULT = new ListExpr(lbxleft, rbxright, ep); :}
