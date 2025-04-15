@@ -230,38 +230,35 @@ non terminal Program           program;
 non terminal List<Declaration> class_body;
 non terminal List<Stmt>        stmt_list, opt_stmt_list;
 non terminal Stmt              stmt, expr_stmt;
-non terminal Expr              expr, cexpr;
+non terminal Expr              expr;
 non terminal Literal           literal;
 non terminal String            bin_op;
 non terminal TypeAnnotation    type;
 non terminal TypedVar          typed_var;
 non terminal VarDef            var_def;
-
-
+non terminal FuncDef           func_def;
+non terminal GlobalDecl        global_decl;
+non terminal NonLocalDecl      nonlocal_decl;
+non terminal ClassDef          class_def;
 non terminal MemberExpr        member_expr;
 non terminal IndexExpr         index_expr;
 
 /* Auxiliares */
+non terminal Expr              cexpr;
 non terminal List<Expr>        expr_params;
 non terminal List<Expr>        optional_exprs;
 non terminal Expr              expr_ifelse;
-
-non terminal GlobalDecl        global_decl;
-non terminal NonLocalDecl      nonlocal_decl;
-
-
 non terminal List<Declaration> optional_program_declarations;
 non terminal List<Stmt>        optional_program_stmts;
 non terminal Declaration       program_declaration;
-
-
-non terminal ClassDef          class_def;
-non terminal GlobalDecl        global_decl;
-non terminal NonLocalDecl      nonlocal_decl;
-
-/* Auxiliares */
 non terminal List<Declaration> required_class_body_definitions;
 non terminal Declaration       class_body_definition;
+non terminal List<Declaration> optional_func_body_declarations;
+non terminal List<Stmt>        required_func_body_stmts;
+non terminal List<TypedVar>    func_params;
+non terminal List<TypedVar>    optional_typed_vars;
+non terminal Declaration       func_body_declaration;
+non terminal TypeAnnotation    return_type;
 
 
 /* Precedences (lowest to highest) for resolving what would otherwise be
@@ -284,6 +281,7 @@ start with program;
 
 
 /*****  GRAMMAR RULES *****/
+
 
 /* program e auxiliares */
 
@@ -329,7 +327,43 @@ required_class_body_definitions ::= required_class_body_definitions:rcbd class_b
 class_body_definition ::= var_def:vd                                 {: RESULT = vd; :}
                        | func_def:fd                                 {: RESULT = fd; :}
                        ;
-                       
+       
+/* func_def e não terminais auxiliares */
+
+func_def ::= DEF:d IDENTIFIER:i LEFT_PARENTHESIS func_params:fp RIGHT_PARENTHESIS return_type:rt COLON NEWLINE INDENT optional_func_body_declarations:decls required_func_body_stmts:stmts DEDENT
+                {: 
+                    Identifier id = new Identifier(ixleft, ixright, i);
+                    RESULT = new FuncDef(dxleft, stmtsxright, id, fp, rt, decls, stmts);
+                :}
+           ;
+
+func_params ::= optional_typed_vars:t_vars   {: RESULT = t_vars; :}
+              |                              {: RESULT = empty(); :}
+              ;
+
+optional_typed_vars ::= typed_var:t                         {: RESULT = single(t); :}
+                    | optional_typed_vars:t_var COMMA typed_var:t {: RESULT = combine(t_var, t); :}
+                    ;
+
+
+return_type ::= RIGHT_ARROW type:t                                 {: RESULT = t; :}
+            |                                                      {: RESULT = null; :}
+            ;
+
+optional_func_body_declarations ::= optional_func_body_declarations:ofbd func_body_declaration:fbd  {: RESULT = combine(ofbd, fbd); :}
+                 |                                                                                  {: RESULT = empty(); :}
+                 ;
+
+func_body_declaration ::= global_decl:gd             {: RESULT = gd; :}
+                 | nonlocal_decl:nd                  {: RESULT = nd; :}
+                 | var_def:vd                        {: RESULT = vd; :}
+                 | func_def:fd                       {: RESULT = fd; :}
+                 ;
+
+required_func_body_stmts ::= required_func_body_stmts:rfbs stmt:s       {: RESULT = combine(rfbs, s);  :}
+                | stmt:s                                                {: RESULT = single(s); :} 
+                ;       
+       
 global_decl ::= GLOBAL:global IDENTIFIER:id_label NEWLINE {: 
                                                         Identifier id = new Identifier(id_labelxleft, id_labelxright, id_label);
                                                         RESULT = new GlobalDecl(globalxleft, id_labelxright, id); 
