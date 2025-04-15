@@ -244,10 +244,19 @@ non terminal List<Expr>        expr_params;
 non terminal List<Expr>        optional_exprs;
 non terminal Expr              expr_ifelse;
 
+
+
+non terminal ClassDef          class_def;
+non terminal GlobalDecl        global_decl;
+non terminal NonLocalDecl      nonlocal_decl;
+
+/* Auxiliares */
+non terminal List<Declaration> required_class_body_definitions;
+non terminal Declaration       class_body_definition;
+
 /* Precedences (lowest to highest) for resolving what would otherwise be
  * ambiguities in the form of shift/reduce conflicts.. */
 
-precedence right expr_ifelse;
 precedence left OR;
 precedence left AND;
 precedence nonassoc IDENTIFIER;
@@ -314,11 +323,11 @@ expr ::= cexpr:ce  {: RESULT = ce; :}
                      not, e); :}
        | expr:e_1a AND:and_op expr:e2_a                          {: RESULT = new BinaryExpr(e1_axleft, e2_axright, e1_a, and_op, e2_a); :}
        | expr:e1_o OR:or_op expr:e2_o                            {: RESULT = new BinaryExpr(e1_oxleft, e2_oxright, e1_o, or_op, e2_o); :}
-       | expr_ifelse:e_ie {: RESULT = e_ie;:}
+       | expr:e1 IF:if1 expr:e2 ELSE:else1 expr:e3 {: RESULT = new IfExpr(e1xleft, e3xright,
+                  e1, e2, e3);:}
        ;
 
-expr_ifelse ::= expr:e1 IF:if1 expr:e2 ELSE:else1 expr:e3 {: RESULT = new IfExpr(e1xleft, e3xright,
-                  e1, e2, e3);:};
+
 
 /* A binary expression, illustrating how to find the left and right
  * source position of a phrase. */
