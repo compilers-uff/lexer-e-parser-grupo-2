@@ -142,7 +142,7 @@ action code {:
     }
 
     IfStmt insertElse(IfStmt elif, List<Stmt> elseBody){
-        if (elif.elseBody == null){
+        if (elif.elseBody.isEmpty()){
             Location left = new ComplexSymbolFactory.Location(elif.getLocation()[0], elif.getLocation()[1]);
             Location right = getRight(elseBody);
             return new IfStmt(left, right, elif.condition, elif.thenBody, elseBody);
@@ -278,7 +278,7 @@ non terminal List<Expr>        optional_exprs;
 non terminal List<Declaration> optional_program_declarations;
 non terminal List<Declaration> required_class_body_definitions;
 non terminal List<Declaration> optional_func_body_declarations;
-non terminal List<Stmt>        optional_program_stmts;
+non terminal List<Stmt>        program_stmts;
 non terminal List<Stmt>        required_stmts;
 non terminal List<Stmt>        optional_func_body_stmts;
 non terminal List<TypedVar>    func_params;
@@ -319,9 +319,9 @@ start with program;
 
 /* program e auxiliares */
 
-program ::= optional_program_declarations:opd optional_program_stmts:ops
-            {: RESULT = new Program(opd.isEmpty() ? getLeft(ops) : getLeft(opd),
-                                    opsxright, opd, ops, errors);
+program ::= optional_program_declarations:opd program_stmts:ps
+            {: RESULT = new Program(opd.isEmpty() ? getLeft(ps) : getLeft(opd),
+                                    psxright, opd, ps, errors);
             :}
         |  optional_program_declarations:opd {: RESULT = new Program(opdxleft,
                                     opdxright, opd, empty(), errors);
@@ -337,7 +337,7 @@ program_declaration ::= var_def:vd                               {: RESULT = vd;
                     | class_def:cd                               {: RESULT = cd; :}
                     ;
 
-optional_program_stmts ::= optional_program_stmts:ops stmt:s     {: RESULT = combine(ops, s); :}
+program_stmts ::= program_stmts:ps stmt:s                          {: RESULT = combine(ps, s); :}
                        | stmt:s                                     {: RESULT = single(s); :}
                        ;
 
@@ -452,7 +452,7 @@ elif_nested ::= elif_stmt:el  {: RESULT = el; :}
             | elif_stmt:el elif_nested:el_nested {: RESULT = new IfStmt(elxleft, el_nestedxright, el.condition, el.thenBody, single(el_nested)); :};
 
 elif_stmt ::= ELIF:el expr:condition COLON block:body  {: 
-                                                        RESULT = new IfStmt(elxleft, bodyxright, condition, body, null);
+                                                        RESULT = new IfStmt(elxleft, bodyxright, condition, body, empty());
                                                      :};
 
 simple_stmt ::= PASS {::}
@@ -469,7 +469,7 @@ targets_assign ::= target:t ASSIGN expr:e               {: RESULT = new AssignSt
  
 target ::= IDENTIFIER:id {: RESULT = new Identifier(idxleft, idxright, id); :};
 
-block ::= NEWLINE INDENT optional_program_stmts:s_list DEDENT {: RESULT = s_list; :};
+block ::= NEWLINE INDENT program_stmts:s_list DEDENT {: RESULT = s_list; :};
 
 expr ::= cexpr:ce  {: RESULT = ce; :}
        | NOT:not_op expr:e {: RESULT = new UnaryExpr(not_opxleft, exright, not_op, e); :}
