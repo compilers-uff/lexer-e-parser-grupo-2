@@ -250,6 +250,10 @@ non terminal GlobalDecl        global_decl;
 non terminal NonLocalDecl      nonlocal_decl;
 
 
+non terminal List<Declaration> optional_program_declarations;
+non terminal List<Stmt>        optional_program_stmts;
+non terminal Declaration       program_declaration;
+
 
 non terminal ClassDef          class_def;
 non terminal GlobalDecl        global_decl;
@@ -258,6 +262,7 @@ non terminal NonLocalDecl      nonlocal_decl;
 /* Auxiliares */
 non terminal List<Declaration> required_class_body_definitions;
 non terminal Declaration       class_body_definition;
+
 
 /* Precedences (lowest to highest) for resolving what would otherwise be
  * ambiguities in the form of shift/reduce conflicts.. */
@@ -280,6 +285,29 @@ start with program;
 
 /*****  GRAMMAR RULES *****/
 
+/* program e auxiliares */
+
+program ::= optional_program_declarations:opd optional_program_stmts:ops
+            {: RESULT = new Program(opd.isEmpty() ? getLeft(ops) : getLeft(opd),
+                                    opsxright, opd, ops, errors);
+            :}
+        ;
+
+optional_program_declarations ::= optional_program_declarations:opd program_declaration:pd  {: RESULT = combine(opd, pd); :}
+                               |                                                            {: RESULT = empty(); :}
+                               ;
+
+program_declaration ::= var_def:vd                               {: RESULT = vd; :}
+                    | func_def:fd                                {: RESULT = fd; :}
+                    | class_def:cd                               {: RESULT = cd; :}
+                    ;
+
+optional_program_stmts ::= optional_program_stmts:ops stmt:s     {: RESULT = combine(ops, s); :}
+                       |                                         {: RESULT = empty(); :}
+                       ;
+
+
+
 /* class_def e não terminais auxiliares */
 
 class_def ::= CLASS:c IDENTIFIER:n LEFT_PARENTHESIS IDENTIFIER:sc RIGHT_PARENTHESIS COLON NEWLINE INDENT class_body:cb DEDENT:d 
@@ -301,6 +329,7 @@ required_class_body_definitions ::= required_class_body_definitions:rcbd class_b
 class_body_definition ::= var_def:vd                                 {: RESULT = vd; :}
                        | func_def:fd                                 {: RESULT = fd; :}
                        ;
+                       
 global_decl ::= GLOBAL:global IDENTIFIER:id_label NEWLINE {: 
                                                         Identifier id = new Identifier(id_labelxleft, id_labelxright, id_label);
                                                         RESULT = new GlobalDecl(globalxleft, id_labelxright, id); 
