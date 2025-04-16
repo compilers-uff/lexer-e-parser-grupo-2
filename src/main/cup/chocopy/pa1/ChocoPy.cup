@@ -302,12 +302,10 @@ non terminal IfStmt            elif_stmt, elif_nested, elif_else;
 precedence right IF, ELSE;
 precedence left OR;
 precedence left AND;
-//precedence right IDENTIFIER;
 precedence nonassoc NOT;
 precedence nonassoc EQUALS, NOT_EQUALS, LESS_THAN, GREATER_THAN, LESS_OR_EQUAL_THAN, GREATER_OR_EQUAL_THAN, IS;
 precedence left PLUS, MINUS;
 precedence left TIMES, INTEGER_DIVISION, MOD;
-//precedence nonassoc UNARY_MINUS;
 precedence left DOT, LEFT_BRACKET, RIGHT_BRACKET;
 precedence nonassoc LEFT_PARENTHESIS;
 precedence right ASSIGN;
@@ -465,11 +463,16 @@ simple_stmt ::= PASS {::}
 
 targets_assign ::= target:t ASSIGN expr:e               {: RESULT = new AssignStmt(txleft, exright, single(t), e); :}
             | target:t ASSIGN targets_assign:tgs_assign {: 
-                                                            tgs_assign.targets.add(0, t);
-                                                            RESULT = tgs_assign;
+                                                            List<Expr> targets = tgs_assign.targets;
+                                                            targets.add(0, t);
+                                                            RESULT = new AssignStmt(txleft, tgs_assignxright, targets, tgs_assign.value); 
                                                         :};
- 
-target ::= IDENTIFIER:id {: RESULT = new Identifier(idxleft, idxright, id); :};
+
+
+target ::= IDENTIFIER:id {: RESULT = new Identifier(idxleft, idxright, id); :}
+        | member_expr:me {: RESULT = me; :}
+        | index_expr:ie {: RESULT = ie; :}
+        ;
 
 block ::= NEWLINE INDENT program_stmts:s_list DEDENT {: RESULT = s_list; :};
 

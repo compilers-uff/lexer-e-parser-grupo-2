@@ -49,6 +49,16 @@ import java.util.Stack;
             value);
     }
 
+    private String parseChocoPyString(String rawString) {
+    String processedStr = rawString.substring(1, rawString.length() - 1);
+
+    return processedStr
+        .replace("\\\\", "\\")
+        .replace("\\\"", "\"")
+        .replace("\\n", "\n") 
+        .replace("\\t", "\t"); 
+    }
+
     private Stack<Integer> initialSpacesByLine = new Stack<>();
     private int spaceCounter = 0;
     private boolean firstTimeEOFReached = true;
@@ -67,8 +77,8 @@ IntegerLiteral = 0 | [1-9][0-9]*
 
 IdStringLiteral = \"[a-zA-Z_][\w]*\"
 
-/* Macro to \", \\, \n and \r, respectively. All the escaped characters of chocopy defined with hexadecimal */
-ScapedChars = \\\"|\\\\|\\n|\\r
+/* Macro to \", \\, \n and \t, respectively. All the escaped characters of chocopy defined with hexadecimal */
+ScapedChars = \\\"|\\\\|\\n|\\t
 
 /* 
     This Macro defines a subset of ASCII from code 32 to code 127, without double quote and backslash.
@@ -93,9 +103,6 @@ Identifier = [a-zA-Z_][a-zA-Z_0-9]*
 
 %%
 
-{IdStringLiteral}           {  return symbol(ChocoPyTokens.IDSTRING, yytext()); }
-
-{StringLiteral}           {  return symbol(ChocoPyTokens.STRING, yytext()); }
 
 <COMMENT_HANDLER> {
 
@@ -114,6 +121,16 @@ Identifier = [a-zA-Z_][a-zA-Z_0-9]*
 }
 
 <RULES_STATE> {
+  {IdStringLiteral}           { 
+                                String processedStr = parseChocoPyString(yytext());
+                                return symbol(ChocoPyTokens.IDSTRING, processedStr); } 
+                         
+
+  {StringLiteral}           {  
+                                String raw = yytext().substring(1, yytext().length() - 1);
+
+                                String processedStr = parseChocoPyString(yytext());
+                                return symbol(ChocoPyTokens.STRING, processedStr); }
 
   /* Delimiters. */
   {LineBreak}                 { 
