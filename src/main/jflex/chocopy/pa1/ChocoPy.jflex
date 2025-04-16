@@ -49,7 +49,9 @@ import java.util.Stack;
             value);
     }
 
-    private String parseChocoPyString(String rawString) {
+
+    private String parseChocoPyStrings(String rawString) {
+
     String processedStr = rawString.substring(1, rawString.length() - 1);
 
     return processedStr
@@ -61,7 +63,8 @@ import java.util.Stack;
 
     private Stack<Integer> initialSpacesByLine = new Stack<>();
     private int spaceCounter = 0;
-    private boolean firstTimeEOFReached = true;
+    // flag para que seja retornada uma NEWLINE ao final do programa antes de emitir os DEDENTS finais
+    private boolean EOFnotFound = true;
 
     {
         initialSpacesByLine.push(0);
@@ -122,29 +125,40 @@ Identifier = [a-zA-Z_][a-zA-Z_0-9]*
 
 <RULES_STATE> {
   {IdStringLiteral}           { 
-                                String processedStr = parseChocoPyString(yytext());
+                                String processedStr = parseChocoPyStrings(yytext());
+
                                 return symbol(ChocoPyTokens.IDSTRING, processedStr); } 
                          
 
   {StringLiteral}           {  
                                 String raw = yytext().substring(1, yytext().length() - 1);
 
-                                String processedStr = parseChocoPyString(yytext());
+
+                                String processedStr = parseChocoPyStrings(yytext());
+
                                 return symbol(ChocoPyTokens.STRING, processedStr); }
 
   /* Delimiters. */
   {LineBreak}                 { 
+                                // olha o caractere 1 posicao a frente do scanner
                                 int next = (int) yycharat(1);
 
+                                // se o scanner esta no anterior imediato ao EOF, 
                                 if (next == 0) {
                                     int top = initialSpacesByLine.peek();
                                     if(top > 0) {
+                                        // "devolve-se" o \n consumido ao scanner para que sejam emitidos DEDENTs
                                         yypushback(1);
                                     }
-                                    if (firstTimeEOFReached) {
-                                        firstTimeEOFReached = false;
+                                    // se eh a primeira vez que o \n anterior ao EOF foi lido,
+                                    if (EOFnotFound) {
+                                        EOFnotFound = false;
                                         return symbol(ChocoPyTokens.NEWLINE); 
                                     } 
+                                    // senão, retorna-se DEDENT, de forma que,
+                                    // por causa do yypushback(1),  serão emitidos tantos DEDENTs quanto elementos  
+                                    // maiores que 0 existirem no topo da pilha ao fim do programa
+                                    // ao fim, quando top == 0, esse estado será deixado e o EOF poderá ser consumido
                                     if (top > 0) {
                                         initialSpacesByLine.pop();
                                         return symbol(ChocoPyTokens.DEDENT);
@@ -246,10 +260,14 @@ try, while, with, yield.*/
 
 <INDENT_HANDLER> {
     {WhiteSpace}*{LineBreak}    {
+                                    // olha o caractere 1 posicao a frente do scanner
                                     int next = (int) yycharat(1);
 
-                                    if (next == 0) {
-                                        firstTimeEOFReached = false;
+                                    // se o scanner esta no anterior imediato ao EOF, 
+                                    // vai ao RULE_STATE, que gerará DEDENTS enquanto o topo da pilha for maior que 0
+                                    if (next == 0) { 
+                                        EOFnotFound = false;
+
                                         yypushback(1);
                                         yybegin(RULES_STATE);
                                     }
@@ -264,6 +282,8 @@ try, while, with, yield.*/
 
                                     if(spaceCounter >= top){
                                         yybegin(RULES_STATE);
+
+                                        // o nivel aumentou, entao isso e registrado na pilha e e emitido indent
                                         if(spaceCounter > top){
                                             initialSpacesByLine.push(spaceCounter);
                                             return symbol(ChocoPyTokens.INDENT);
