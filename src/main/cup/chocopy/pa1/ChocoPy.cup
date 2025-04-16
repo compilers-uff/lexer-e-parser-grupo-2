@@ -263,7 +263,6 @@ non terminal MemberExpr        member_expr;
 non terminal IndexExpr         index_expr;
 
 non terminal Literal           literal;
-non terminal String            bin_op;
 non terminal TypeAnnotation    type;
 non terminal TypedVar          typed_var;
 non terminal VarDef            var_def;
@@ -483,9 +482,6 @@ expr ::= cexpr:ce  {: RESULT = ce; :}
        | expr:e1 IF:if1 expr:e2 ELSE:else1 expr:e3 {: RESULT = new IfExpr(e1xleft, e3xright, e2, e1, e3);:}
        ;
 
-
-/* A binary expression, illustrating how to find the left and right
- * source position of a phrase. */
 cexpr ::=  IDENTIFIER:i {: RESULT =  new Identifier(ixleft, ixright, i);:}
           | literal:n       {: RESULT = n; :}
           | LEFT_BRACKET:lb expr_params:ep RIGHT_BRACKET:rb {: RESULT = new ListExpr(lbxleft, rbxright, ep); :}
@@ -497,7 +493,18 @@ cexpr ::=  IDENTIFIER:i {: RESULT =  new Identifier(ixleft, ixright, i);:}
                                                                                             Identifier identifier = new Identifier(idxleft, idxright, id);
                                                                                             RESULT = new CallExpr(idxleft, rpxright, identifier, ep); 
                                                                                         :}
-          | cexpr:e1 bin_op:op cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, op, e2); :}
+          | cexpr:e1 PLUS:plus cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, plus, e2); :}
+          | cexpr:e1 MINUS:minus cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, minus, e2); :}
+          | cexpr:e1 TIMES:times cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, times, e2); :}
+          | cexpr:e1 INTEGER_DIVISION:i_div cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, i_div, e2); :}
+          | cexpr:e1 MOD:mod cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, mod, e2); :}
+          | cexpr:e1 LESS_THAN:less cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, less, e2); :}
+          | cexpr:e1 GREATER_THAN:greater cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, greater, e2); :}
+          | cexpr:e1 LESS_OR_EQUAL_THAN:less_eq cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, less_eq, e2); :}
+          | cexpr:e1 GREATER_OR_EQUAL_THAN:greater_eq cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, greater_eq, e2); :}
+          | cexpr:e1 EQUALS:equals cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, equals, e2); :}
+          | cexpr:e1 NOT_EQUALS:not_equals cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, not_equals, e2); :}
+          | cexpr:e1 IS:is cexpr:e2 {: RESULT = new BinaryExpr(e1xleft, e2xright, e1, is, e2); :}
           | MINUS:minus cexpr:c_e {: RESULT = new UnaryExpr(minusxleft, c_exright, minus, c_e);:}
               ;
 
@@ -528,18 +535,3 @@ literal ::= NONE:n {: RESULT = new NoneLiteral(nxleft, nxright);:}
         | IDSTRING:is {:  RESULT = new StringLiteral(isxleft, isxright, is); :}
         | STRING:s {:  RESULT = new StringLiteral(sxleft, sxright, s); :}
         ;
-
-/* binary operators */
-bin_op ::= PLUS:plus {:RESULT = plus;:}
-         | MINUS:minus {:RESULT = minus;:}
-         | TIMES:times {:RESULT = times;:}
-         | INTEGER_DIVISION:i_d {:RESULT = i_d;:}
-         | MOD:mod {:RESULT = mod;:}
-         | LESS_THAN:l_t {:RESULT = l_t;:}
-         | GREATER_THAN:g_t {:RESULT = g_t;:}
-         | LESS_OR_EQUAL_THAN:l_e_t {:RESULT = l_e_t;:}
-         | GREATER_OR_EQUAL_THAN:g_e_t {:RESULT = g_e_t;:}
-         | EQUALS:equals {:RESULT = equals;:}
-         | NOT_EQUALS:n_equals {:RESULT = n_equals;:}
-         | IS:is {:RESULT = is;:}
-         ;
