@@ -58,14 +58,57 @@ To sync with updates upstream:
 - Thiago Serra Dias Aguiar
 
 
+Gostaríamos de agradecer ao Erik Alves de Moura Izidoro, que nos atentou ao fato de que a saída do comando executado com a flag --debug poderia nos ajudar a consertar erros léxicos.
+
+Durante a execução desse trabalho, foram gastas cerca de 73 horas, considerando 3h de trabalho durante as aulas.
+
 ### Questões propostas
 
 
-Que estratégia você usou para emitir tokens INDENT e DEDENT corretamente? Mencione o nome do arquivo e o(s) número(s) da(s) linha(s) para a parte principal da sua solução.
+**Que estratégia você usou para emitir tokens INDENT e DEDENT corretamente? Mencione o nome do arquivo e o(s) número(s) da(s) linha(s) para a parte principal da sua solução.**
+
+O lexer implementou três passos principais para emitir INDENTs e DEDENTS: 
+1) Contar os espaços e tabs no início de cada linha lógica para determinar o nível atual de indentação.
+2) Comparar com o nível anterior e, a partir disso, decidir se emite INDENT ou DEDENT
+3) Garantir que, no final do arquivo, para cada INDENT gerado durante o programa, seja gerado um DEDENT
+
+Para implementar isso, utilizamos três estados: RULES_STATE, INDENT_HANDLER e DEDENT_HANDLER. Além disso, usamos uma pilha cujo elemento do topo representa o nível de indentação no nível anterior ao analisado no momento corrente (sendo o inicial o 0) e uma variável spaceCounter que é utilizada para contar espaços em branco de cada linha lógica. 
+
+Abaixo, são listadas as ações de cada estado:
+
+**RULES_STATE**:  
+Ao encontrar uma quebra de linha, verifica o próximo caractere:
+
+Se for detectado o caractere nulo, significa que chegamos ao LineBreak anterior ao EOF.
+<p style="padding-left: 50px; margin-left: 0;">
+    Com isso, caso o topo da pilha seja 0, não há o que fazer em relação ao passo 3, pois significa que todos os INDENTs foram casados.<br><br>
+    Caso contrário, damos yypushback(1) para que o LineBreak seja consumido novamente neste estado. Em sequência, emitimos um NEWLINE caso seja a primeira vez que o antecessor imediato do EOF foi achado. Por outro lado, se o EOF já foi descoberto, emitimos um DEDENT caso o topo da pilha seja maior que zero. Por causa do yypushback(1), essa lógica garante que serão emitidos tantos DEDENTs quanto elementos  maiores que 0 existirem no topo da pilha ao fim do programa, de modo que, quando top == 0, o pushback não será executado, esse estado será deixado e o EOF poderá ser consumido pelo EOF rule.
+</p>
+Caso contrário, se o próximo caractere não for o nulo, muda para o estado de INDENT_HANDLER para contar os espaços da próxima linha.
+
+<br>
+
+**INDENT_HANDLER**: 
+Conta a quantidade de espaços na linha atual, incrementando a variável spaceCounter em uma unidade ao ler um " " e em 8 unidades ao ler um \t.
+Ao perceber um caractere que não é whiteSpace, 
+<p style="padding-left: 50px; margin-left: 0;">
+Se a quantidade de espaços for maior que o topo da pilha, significa que estamos em um novo nível, logo emite-se um INDENT e atualiza-se o topo da pilha.
+Se for igual, não emite tokens.
+E, por fim, se for menor, transiciona para o DEDENT_HANDLER.
+</p>
+
+**DEDENT_HANDLER**:
+
+Desempilha níveis do topo da pilha até encontrar um igual ao atual.
+Para cada nível removido, emite um DEDENT, fechando o bloco.
+Se a quantidade de espaços nesta linha for inconsistente, ou seja, o spaceCounter não casa com o nível no topo da pilha, emite um INDENT_ERROR.
 
 
-Como sua solução ao item 1. se relaciona ao descrito na seção 3.1 do manual de referência de ChocoPy? (Arquivo chocopy_language_reference.pdf.)
+**Como sua solução ao item 1. se relaciona ao descrito na seção 3.1 do manual de referência de ChocoPy? (Arquivo chocopy_language_reference.pdf.)**
+
+No programa de forma geral, detectamos o final de linhas físicas para Unix, Windows e Mac por meio de um regex que aceita a união dos caracteres que representam quebra de linha em cada sistema. Como especificado, linhas vazias são ignoradas pelo padrão {WhiteSpace}*{LineBreak} no INDENT_HANDLER, enquanto linhas lógicas não.
+Encontramos uma linha lógica quando a entrada casa apenas com {WhiteSpace}, já que, visto que o jflex dá match com o maior padrão encontrado, se achamos apenas um {WhiteSpace}, há algo "útil" após ele, então podemos incrementar o spaceCounter que será utilizado no processo de indentação. Essa contagem de espaços é feita de forma que o " " incrementa spaceCounter em uma unidade e \t em 8 unidades. Em relação à indentação, utilizamos uma pilha inicializada com 0 que mantém níveis de indentação estritamente crescentes. O estado INDENT_HANDLER compara o spaceCounter com o topo da pilha: se maior, empilha o novo nível e emite um INDENT; se igual, não faz nada; se menor, transita para o estado DEDENT_HANDLER, que desempilha os níveis excedentes emitindo um DEDENT para cada um até encontrar o nível correspondente. No final do arquivo, o RULES_STATE garante que todos os níveis restantes na pilha (acima de zero) sejam desempilhados com a emissão dos DEDENTs necessários, usando yypushback(1) para reprocessar a quebra de linha final enquanto houver níveis para fechar. A detecção de erros de indentação é feita quando uma linha não alinhada é encontrada durante o processo de dedentação, emitindo um INDENTATION_ERROR. 
 
 
-Qual foi a característica mais difícil da linguagem (não incluindo identação) neste projeto? Por que foi um desafio? Mencione o nome do arquivo e o(s) número(s) da(s) linha(s) para a parte principal de a sua solução.
+**Qual foi a característica mais difícil da linguagem (não incluindo identação) neste projeto? Por que foi um desafio? Mencione o nome do arquivo e o(s) número(s) da(s) linha(s) para a parte principal de a sua solução.**
 
