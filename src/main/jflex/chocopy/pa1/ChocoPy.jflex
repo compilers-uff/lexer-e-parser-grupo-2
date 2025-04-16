@@ -49,7 +49,9 @@ import java.util.Stack;
             value);
     }
 
+
     private String parseChocoPyStrings(String rawString) {
+
     String processedStr = rawString.substring(1, rawString.length() - 1);
 
     return processedStr
@@ -58,6 +60,7 @@ import java.util.Stack;
         .replace("\\n", "\n") 
         .replace("\\t", "\t"); 
     }
+
     private Stack<Integer> initialSpacesByLine = new Stack<>();
     private int spaceCounter = 0;
     // flag para que seja retornada uma NEWLINE ao final do programa antes de emitir os DEDENTS finais
@@ -123,13 +126,16 @@ Identifier = [a-zA-Z_][a-zA-Z_0-9]*
 <RULES_STATE> {
   {IdStringLiteral}           { 
                                 String processedStr = parseChocoPyStrings(yytext());
+
                                 return symbol(ChocoPyTokens.IDSTRING, processedStr); } 
                          
 
   {StringLiteral}           {  
                                 String raw = yytext().substring(1, yytext().length() - 1);
 
+
                                 String processedStr = parseChocoPyStrings(yytext());
+
                                 return symbol(ChocoPyTokens.STRING, processedStr); }
 
   /* Delimiters. */
@@ -261,6 +267,7 @@ try, while, with, yield.*/
                                     // vai ao RULE_STATE, que gerará DEDENTS enquanto o topo da pilha for maior que 0
                                     if (next == 0) { 
                                         EOFnotFound = false;
+
                                         yypushback(1);
                                         yybegin(RULES_STATE);
                                     }
