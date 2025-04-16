@@ -48,8 +48,24 @@ To sync with updates upstream:
 
 ## Submission writeup
 
-Team member 1: 
+### Membros da Equipe
 
-Team member 2: 
 
-(Students should edit this section with their write-up)
+- Raphael Carvalho da Conceição
+
+- Sara Maia Cavalcante
+
+- Thiago Serra Dias Aguiar
+
+
+### Questões propostas
+
+
+Que estratégia você usou para emitir tokens INDENT e DEDENT corretamente? Mencione o nome do arquivo e o(s) número(s) da(s) linha(s) para a parte principal da sua solução.
+
+
+Como sua solução ao item 1. se relaciona ao descrito na seção 3.1 do manual de referência de ChocoPy? (Arquivo chocopy_language_reference.pdf.)
+
+
+Qual foi a característica mais difícil da linguagem (não incluindo identação) neste projeto? Por que foi um desafio? Mencione o nome do arquivo e o(s) número(s) da(s) linha(s) para a parte principal de a sua solução.
+
