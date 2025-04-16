@@ -1,0 +1,172 @@
+{
+    "declarations" : [ {
+      "var" : {
+        "identifier" : {
+          "name" : "numero1",
+          "kind" : "Identifier",
+          "location" : [ 1, 1, 1, 7 ]
+        },
+        "type" : {
+          "kind" : "ClassType",
+          "location" : [ 1, 10, 1, 12 ],
+          "className" : "int"
+        },
+        "kind" : "TypedVar",
+        "location" : [ 1, 1, 1, 12 ]
+      },
+      "value" : {
+        "value" : 10,
+        "kind" : "IntegerLiteral",
+        "location" : [ 1, 16, 1, 17 ]
+      },
+      "kind" : "VarDef",
+      "location" : [ 1, 1, 1, 17 ]
+    }, {
+      "name" : {
+        "name" : "func1",
+        "kind" : "Identifier",
+        "location" : [ 3, 5, 3, 9 ]
+      },
+      "params" : [ {
+        "identifier" : {
+          "name" : "num1",
+          "kind" : "Identifier",
+          "location" : [ 3, 11, 3, 14 ]
+        },
+        "type" : {
+          "kind" : "ClassType",
+          "location" : [ 3, 17, 3, 19 ],
+          "className" : "int"
+        },
+        "kind" : "TypedVar",
+        "location" : [ 3, 11, 3, 19 ]
+      }, {
+        "identifier" : {
+          "name" : "num2",
+          "kind" : "Identifier",
+          "location" : [ 3, 22, 3, 25 ]
+        },
+        "type" : {
+          "kind" : "ClassType",
+          "location" : [ 3, 28, 3, 30 ],
+          "className" : "int"
+        },
+        "kind" : "TypedVar",
+        "location" : [ 3, 22, 3, 30 ]
+      } ],
+      "returnType" : {
+        "kind" : "ClassType",
+        "location" : [ 3, 36, 3, 38 ],
+        "className" : "int"
+      },
+      "declarations" : [ {
+        "variable" : {
+          "name" : "numero1",
+          "kind" : "Identifier",
+          "location" : [ 4, 12, 4, 18 ]
+        },
+        "kind" : "GlobalDecl",
+        "location" : [ 4, 5, 4, 18 ]
+      }, {
+        "var" : {
+          "identifier" : {
+            "name" : "numero2",
+            "kind" : "Identifier",
+            "location" : [ 5, 5, 5, 11 ]
+          },
+          "type" : {
+            "kind" : "ClassType",
+            "location" : [ 5, 14, 5, 16 ],
+            "className" : "int"
+          },
+          "kind" : "TypedVar",
+          "location" : [ 5, 5, 5, 16 ]
+        },
+        "value" : {
+          "value" : 11,
+          "kind" : "IntegerLiteral",
+          "location" : [ 5, 20, 5, 21 ]
+        },
+        "kind" : "VarDef",
+        "location" : [ 5, 5, 5, 21 ]
+      }, {
+        "name" : {
+          "name" : "func2",
+          "kind" : "Identifier",
+          "location" : [ 7, 9, 7, 13 ]
+        },
+        "params" : [ ],
+        "returnType" : {
+          "kind" : "ClassType",
+          "location" : [ 7, 16, 7, 16 ],
+          "className" : "<None>"
+        },
+        "declarations" : [ {
+          "variable" : {
+            "name" : "numero2",
+            "kind" : "Identifier",
+            "location" : [ 8, 18, 8, 24 ]
+          },
+          "kind" : "NonLocalDecl",
+          "location" : [ 8, 9, 8, 24 ]
+        }, {
+          "var" : {
+            "identifier" : {
+              "name" : "numero3",
+              "kind" : "Identifier",
+              "location" : [ 10, 9, 10, 15 ]
+            },
+            "type" : {
+              "kind" : "ClassType",
+              "location" : [ 10, 18, 10, 20 ],
+              "className" : "int"
+            },
+            "kind" : "TypedVar",
+            "location" : [ 10, 9, 10, 20 ]
+          },
+          "value" : {
+            "value" : 10,
+            "kind" : "IntegerLiteral",
+            "location" : [ 10, 24, 10, 25 ]
+          },
+          "kind" : "VarDef",
+          "location" : [ 10, 9, 10, 25 ]
+        } ],
+        "statements" : [ {
+          "value" : {
+            "name" : "numero3",
+            "kind" : "Identifier",
+            "location" : [ 12, 16, 12, 22 ]
+          },
+          "kind" : "ReturnStmt",
+          "location" : [ 12, 9, 12, 23 ]
+        } ],
+        "kind" : "FuncDef",
+        "location" : [ 7, 5, 14, 4 ]
+      } ],
+      "statements" : [ {
+        "value" : {
+          "function" : {
+            "name" : "func2",
+            "kind" : "Identifier",
+            "location" : [ 14, 12, 14, 16 ]
+          },
+          "args" : [ ],
+          "kind" : "CallExpr",
+          "location" : [ 14, 12, 14, 18 ]
+        },
+        "kind" : "ReturnStmt",
+        "location" : [ 14, 5, 14, 18 ]
+      } ],
+      "kind" : "FuncDef",
+      "location" : [ 3, 1, 14, 18 ]
+    } ],
+    "statements" : [ ],
+    "errors" : {
+      "errors" : [ ],
+      "kind" : "Errors",
+      "location" : [ 0, 0, 0, 0 ]
+    },
+    "kind" : "Program",
+    "location" : [ 0, 0, 14, 18 ]
+  }

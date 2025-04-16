@@ -243,6 +243,9 @@ terminal String RIGHT_ARROW;
 /* Identifiers. */
 terminal String IDENTIFIER;
 
+/* Auxiliar terminals */
+//terminal EOF;
+
 
 /* Nonterminal symbols (defined in production rules below).
  * As for terminal symbols, 
@@ -308,7 +311,6 @@ precedence left TIMES, INTEGER_DIVISION, MOD;
 precedence left DOT, LEFT_BRACKET, RIGHT_BRACKET;
 precedence nonassoc LEFT_PARENTHESIS;
 precedence right ASSIGN;
-
 
 /* The start symbol. */
 start with program;

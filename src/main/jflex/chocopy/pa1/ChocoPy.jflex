@@ -89,6 +89,7 @@ Identifier = [a-zA-Z_][a-zA-Z_0-9]*
 
 %state DEDENT_HANDLER
 
+%state RULES_STATE
 
 %%
 
@@ -98,13 +99,21 @@ Identifier = [a-zA-Z_][a-zA-Z_0-9]*
 
 <COMMENT_HANDLER> {
 
-  {LineBreak}           { yybegin(YYINITIAL); }
+  {LineBreak}           { yybegin(RULES_STATE); }
   .                     {}
 
 }
 
-
 <YYINITIAL> {
+      {WhiteSpace}*{LineBreak}      {}
+
+      .                             {
+                                        yypushback(1);
+                                        yybegin(RULES_STATE);
+                                    }
+}
+
+<RULES_STATE> {
 
   /* Delimiters. */
   {LineBreak}                 { 
@@ -219,7 +228,15 @@ try, while, with, yield.*/
 }
 
 <INDENT_HANDLER> {
-    {WhiteSpace}*{LineBreak}    { /* ignore */ }
+    {WhiteSpace}*{LineBreak}    {
+                                    int next = (int) yycharat(1);
+
+                                    if (next == 0) {
+                                        firstTimeEOFReached = false;
+                                        yypushback(1);
+                                        yybegin(RULES_STATE);
+                                    }
+                                }
 
     {WhiteSpace}                { spaceCounter++; }
 
@@ -229,7 +246,7 @@ try, while, with, yield.*/
                                     int top = initialSpacesByLine.peek();
 
                                     if(spaceCounter >= top){
-                                        yybegin(YYINITIAL);
+                                        yybegin(RULES_STATE);
                                         if(spaceCounter > top){
                                             initialSpacesByLine.push(spaceCounter);
                                             return symbol(ChocoPyTokens.INDENT);
@@ -251,8 +268,8 @@ try, while, with, yield.*/
                                         initialSpacesByLine.pop();
                                         return symbol(ChocoPyTokens.DEDENT);
                                     }
-
-                                    yybegin(YYINITIAL);
+                                    
+                                    yybegin(RULES_STATE);
 
                                     if(spaceCounter > top){
                                         return symbol(ChocoPyTokens.INDENTATION_ERROR);
