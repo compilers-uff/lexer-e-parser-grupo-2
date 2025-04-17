@@ -4,6 +4,7 @@ matriz: [[int]] = None
 class _Ameba89(_Ameba88):
     pass
 
+# aqui um comentario
 class A(object):
     x: int = 13
 
@@ -37,7 +38,7 @@ def buscaBinaria(lista:[int], buscado:int):
         i = len(lista)//2 
     return i
 
-
+buscado = A().x
 
 lista = [1, 2, 3, 13, 20]
 i = buscaBinaria(lista, 8989)
