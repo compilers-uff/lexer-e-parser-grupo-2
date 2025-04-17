@@ -1,0 +1,3 @@
+class Oi:
+
+    singleton: "Oi"
