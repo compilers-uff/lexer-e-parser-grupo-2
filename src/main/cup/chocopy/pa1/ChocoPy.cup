@@ -141,14 +141,13 @@ action code {:
                                                  last.getLocation()[3]);
     }
 
-    IfStmt insertElse(IfStmt elif, List<Stmt> elseBody){
+     IfStmt insertElse(IfStmt elif, List<Stmt> elseBody, Location elsexright){
         if (elif.elseBody.isEmpty()){
             Location left = new ComplexSymbolFactory.Location(elif.getLocation()[0], elif.getLocation()[1]);
-            Location right = getRight(elseBody);
-            return new IfStmt(left, right, elif.condition, elif.thenBody, elseBody);
+            return new IfStmt(left, elsexright, elif.condition, elif.thenBody, elseBody);
         }
         IfStmt elifInternal = (IfStmt) elif.elseBody.get(0);
-        IfStmt elifNested = insertElse(elifInternal, elseBody);
+        IfStmt elifNested = insertElse(elifInternal, elseBody, elsexright);
         Location newLeft = new ComplexSymbolFactory.Location(elif.getLocation()[0], elif.getLocation()[1]);
         Location newRight = getRight(elseBody);
         return new IfStmt(newLeft, newRight, elif.condition, elif.thenBody, single(elifNested));
@@ -448,7 +447,7 @@ stmt ::= simple_stmt:s_stmt NEWLINE                                     {: RESUL
                                                     RESULT = new IfStmt(if_tokenxleft, el_elsexright, condition, body, single(el_else)); 
                                                 :};
 
-elif_else ::= elif_nested:el_nested ELSE COLON block:elseBody {: RESULT = insertElse(el_nested, elseBody); :};
+elif_else ::= elif_nested:el_nested ELSE COLON block:elseBody {: RESULT = insertElse(el_nested, elseBody, elseBodyxright); :};
 
 elif_nested ::= elif_stmt:el  {: RESULT = el; :}
             | elif_stmt:el elif_nested:el_nested {: RESULT = new IfStmt(elxleft, el_nestedxright, el.condition, el.thenBody, single(el_nested)); :};
