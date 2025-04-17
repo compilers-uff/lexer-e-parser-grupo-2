@@ -273,9 +273,25 @@ try, while, with, yield.*/
                                     }
                                 }
 
-    {WhiteSpace}                { spaceCounter++; }
+    {WhiteSpace}*.              {
+                                    String str = yytext();
 
-    .                           {
+                                    for (char ch : str.toCharArray()) {
+                                        if (ch == ' ')
+                                            spaceCounter++;
+                                        else if (ch == '\t')
+                                            spaceCounter += 8;
+                                    }
+                                    //int spacecounter = 0;
+                                    String str = yytext();
+
+                                    for (char ch : str.toCharArray()) {
+                                        if (ch == ' ')
+                                            spaceCounter++;
+                                        else if (ch == '\t')
+                                            spaceCounter += 8;
+                                    }
+
                                     yypushback(1);
 
                                     int top = initialSpacesByLine.peek();

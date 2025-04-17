@@ -457,7 +457,7 @@ elif_stmt ::= ELIF:el expr:condition COLON block:body  {:
 simple_stmt ::= PASS {::}
             | expr:e {: RESULT = new ExprStmt(exleft, exright, e); :}
             | RETURN:ret {: RESULT = new ReturnStmt(retxleft, retxright, null); :}
-            | RETURN:ret expr:e {: RESULT = new ReturnStmt(retxleft, retxright, e); :}
+            | RETURN:ret expr:e {: RESULT = new ReturnStmt(retxleft, exright, e);  :}
             | targets_assign:tgs {: RESULT = tgs; :};
 
 targets_assign ::= target:t ASSIGN expr:e               {: RESULT = new AssignStmt(txleft, exright, single(t), e); :}
