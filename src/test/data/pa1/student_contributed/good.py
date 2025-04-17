@@ -54,6 +54,8 @@ i = i*5+10
 
 if True:
     a = -9
+else: 
+    a = 5
 
 print(lista[i*78 %2] is None)
 lista = []
