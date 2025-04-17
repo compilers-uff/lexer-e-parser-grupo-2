@@ -115,3 +115,4 @@ Encontramos uma linha lógica quando a entrada casa apenas com {WhiteSpace}, já
 
 3) **Qual foi a característica mais difícil da linguagem (não incluindo identação) neste projeto? Por que foi um desafio? Mencione o nome do arquivo e o(s) número(s) da(s) linha(s) para a parte principal de a sua solução.**
 
+O fato de o elif ser um exemplo de açúcar sintático fez com que fosse necessário que construíssemos mais regras que tratassem todos os casos do IF e também uma função que nos permitisse inserir estruturas IF-ELSE no "else mais interno" de uma estrutura IF-ELIF-ELSE. Pensar nessa recursão foi um desafio, pois precisávamos construir um algoritmo consistente com a estrutura aninhada dos if statements. A solução para essa dificuldade enfrentada se encontra no intervalo de linhas [144, 155] e na linha 451.
