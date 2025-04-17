@@ -350,6 +350,7 @@ class_def ::= CLASS:c IDENTIFIER:n LEFT_PARENTHESIS IDENTIFIER:sc RIGHT_PARENTHE
                     Identifier superClass = new Identifier(scxleft, scxright, sc);
                     RESULT = new ClassDef(cxleft, cbxright, name, superClass, cb);
                 :}
+                | CLASS error NEWLINE {:   RESULT = null; :}
             ;
 
 class_body ::= PASS NEWLINE                                                          {: RESULT = empty(); :}
@@ -376,6 +377,7 @@ func_def ::= DEF:d IDENTIFIER:i LEFT_PARENTHESIS func_params:fp RIGHT_PARENTHESI
 
                     RESULT = new FuncDef(dxleft, stmtsxright, id, fp, rt, decls, stmts);
                 :}
+            | DEF error NEWLINE {:    RESULT = null; :}
            ;
 
 func_params ::= optional_typed_vars:t_vars   {: RESULT = t_vars; :}
@@ -417,7 +419,8 @@ nonlocal_decl ::= NONLOCAL:nonlocal IDENTIFIER:id_label NEWLINE {:
 
 var_def ::= typed_var:t_var ASSIGN:assign literal:value NEWLINE:n {: 
                                                                 RESULT = new VarDef(t_varxleft, valuexright, t_var, value);
-                                                            :};
+                                                            :}
+            | error NEWLINE {: RESULT = null; :};
 
 typed_var ::= IDENTIFIER:id COLON type:t {:
                                         Identifier cId = new Identifier(idxleft, idxright, id);
